@@ -1,0 +1,14 @@
+#ifndef _ELA_CAN_H_
+#define _ELA_CAN_H_
+
+#include "elaco_main.h"
+
+void Can_Init(void);
+HAL_StatusTypeDef Can_SendMessage(unsigned short id,
+                                   unsigned char *data,
+                                   unsigned char len);
+HAL_StatusTypeDef Can_SendMessageExt(unsigned int id,
+                                      unsigned char *data,
+                                      unsigned char len);
+
+#endif

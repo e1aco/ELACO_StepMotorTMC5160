@@ -1,0 +1,13 @@
+stepmotordriver_keil\mbtcp.o: ..\FreeModbus\modbus\mbtcp.c
+stepmotordriver_keil\mbtcp.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdlib.h
+stepmotordriver_keil\mbtcp.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\string.h
+stepmotordriver_keil\mbtcp.o: ..\FreeModbus\modbus\port.h
+stepmotordriver_keil\mbtcp.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\assert.h
+stepmotordriver_keil\mbtcp.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\inttypes.h
+stepmotordriver_keil\mbtcp.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdint.h
+stepmotordriver_keil\mbtcp.o: ..\FreeModbus\modbus\mb.h
+stepmotordriver_keil\mbtcp.o: ..\FreeModbus\modbus\mbport.h
+stepmotordriver_keil\mbtcp.o: ..\FreeModbus\modbus\mbproto.h
+stepmotordriver_keil\mbtcp.o: ..\FreeModbus\modbus\mbconfig.h
+stepmotordriver_keil\mbtcp.o: ..\FreeModbus\modbus\mbtcp.h
+stepmotordriver_keil\mbtcp.o: ..\FreeModbus\modbus\mbframe.h

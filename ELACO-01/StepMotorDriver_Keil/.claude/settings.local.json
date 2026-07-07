@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk 'length>84 {printf \"%s:%d \\(%d chars\\): %s\\\\n\", FILENAME, NR, length, substr\\($0,1,70\\) \"...\"}' ela_uart.c ela_uart.h)"
+    ]
+  }
+}

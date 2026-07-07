@@ -1,0 +1,12 @@
+stepmotordriver_keil\mbfuncdisc.o: ..\FreeModbus\modbus\mbfuncdisc.c
+stepmotordriver_keil\mbfuncdisc.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdlib.h
+stepmotordriver_keil\mbfuncdisc.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\string.h
+stepmotordriver_keil\mbfuncdisc.o: ..\FreeModbus\modbus\port.h
+stepmotordriver_keil\mbfuncdisc.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\assert.h
+stepmotordriver_keil\mbfuncdisc.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\inttypes.h
+stepmotordriver_keil\mbfuncdisc.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdint.h
+stepmotordriver_keil\mbfuncdisc.o: ..\FreeModbus\modbus\mb.h
+stepmotordriver_keil\mbfuncdisc.o: ..\FreeModbus\modbus\mbport.h
+stepmotordriver_keil\mbfuncdisc.o: ..\FreeModbus\modbus\mbproto.h
+stepmotordriver_keil\mbfuncdisc.o: ..\FreeModbus\modbus\mbframe.h
+stepmotordriver_keil\mbfuncdisc.o: ..\FreeModbus\modbus\mbconfig.h

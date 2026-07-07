@@ -1,0 +1,13 @@
+*** Using Compiler 'V5.06 update 7 (build 960)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
+Build target 'StepMotorDriver_Keil'
+compiling elaco_main.c...
+..\ELA_LIB\ela_eeprom.h(57): warning:  #1-D: last line of file ends without a newline
+  #endif
+..\ELA_LIB\elaco_main.c(149): warning:  #1-D: last line of file ends without a newline
+  /* -2- 结束 中断回调函数部分 */
+..\ELA_LIB\elaco_main.c: 2 warnings, 0 errors
+linking...
+Program Size: Code=13974 RO-data=458 RW-data=68 ZI-data=1876  
+FromELF: creating hex file...
+"StepMotorDriver_Keil\StepMotorDriver_Keil.axf" - 0 Error(s), 2 Warning(s).
+Build Time Elapsed:  00:00:03
