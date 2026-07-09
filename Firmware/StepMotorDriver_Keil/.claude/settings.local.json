@@ -1,7 +1,28 @@
 {
   "permissions": {
     "allow": [
-      "Bash(awk 'length>84 {printf \"%s:%d \\(%d chars\\): %s\\\\n\", FILENAME, NR, length, substr\\($0,1,70\\) \"...\"}' ela_uart.c ela_uart.h)"
+      "Bash(awk 'length>84 {printf \"%s:%d \\(%d chars\\): %s\\\\n\", FILENAME, NR, length, substr\\($0,1,70\\) \"...\"}' ela_uart.c ela_uart.h)",
+      "Bash(pdftotext \"C:\\\\Users\\\\admin\\\\Desktop\\\\XM\\\\ELACO_StepMotorTMC5160\\\\Firmware\\\\StepMotorDriver_Keil\\\\require\\\\TMC5160A_Datasheet_Rev1.14.pdf\" -)",
+      "Bash(pdftotext -layout \"C:\\\\Users\\\\admin\\\\Desktop\\\\XM\\\\ELACO_StepMotorTMC5160\\\\Firmware\\\\StepMotorDriver_Keil\\\\require\\\\TMC5160A_Datasheet_Rev1.14.pdf\" -)",
+      "Bash(pdftotext *)",
+      "WebSearch",
+      "Bash(python3 -c ' *)",
+      "Bash(python -c ' *)",
+      "Bash(sed -i 's/HAL_SPI_TransmitReceive\\(\\\\&hspi3,/HAL_SPI_Transmit\\(\\\\&hspi3,/g' ela_tmc5160.c)",
+      "Bash(sed -i 's/tx_buf, rx_buf, 5/tx_buf, 5/g' ela_tmc5160.c)",
+      "Bash(sed -i '/unsigned char rx_buf\\\\[5\\\\];/d' ela_tmc5160.c)",
+      "Bash(sed -i '93d' ela_tmc5160.c)",
+      "Bash(sed -i '106s/HAL_SPI_TransmitReceive\\(\\\\&hspi3,/HAL_SPI_Transmit\\(\\\\&hspi3,/g' ela_tmc5160.c)",
+      "Bash(sed -i '107s/tx_buf, rx_buf, 5/tx_buf, 5/g' ela_tmc5160.c)",
+      "Bash(sed -i '112s/HAL_SPI_TransmitReceive\\(\\\\&hspi3,/HAL_SPI_Transmit\\(\\\\&hspi3,/g' ela_tmc5160.c)",
+      "Bash(sed -i '113s/tx_buf, rx_buf, 5/tx_buf, 5/g' ela_tmc5160.c)",
+      "Bash(git checkout *)",
+      "Bash(sed -i 's/HAL_SPI_TransmitReceive\\(\\\\&hspi3,\\\\s*\\\\n\\\\s*tx_buf, rx_buf, 5, HAL_MAX_DELAY\\)/HAL_SPI_Transmit\\(\\\\&hspi3, tx_buf, 5, HAL_MAX_DELAY\\)/' ela_tmc5160.c)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(sed -i '105s/TransmitReceive/Transmit/' ela_tmc5160.c)",
+      "Bash(sed -i '106s/tx_buf, rx_buf, 5/tx_buf, 5/' ela_tmc5160.c)",
+      "Bash(sed -i '110s/TransmitReceive/Transmit/' ela_tmc5160.c)",
+      "Bash(sed -i '111s/tx_buf, rx_buf, 5/tx_buf, 5/' ela_tmc5160.c)"
     ]
   }
 }

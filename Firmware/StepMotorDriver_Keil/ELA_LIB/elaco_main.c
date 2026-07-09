@@ -9,6 +9,7 @@
 
 #include "test_freemodbus.h"
 #include "test_tmc5160.h"
+#include "test_speed_mode.h"
 
 #endif
 
@@ -41,12 +42,15 @@ void elaco_main(void)
     Timer_Init(); // 定时器初始化
 
     Tmc5160_Init(); // TMC5160 初始化
+    g_tmc5160_chip1_st.mode = 1;
+    g_tmc5160_chip2_st.mode = 1;
     Tmc5160_Mode(&g_tmc5160_chip1_st);// 设置为模式1
     Tmc5160_Mode(&g_tmc5160_chip2_st);
 
 #ifdef ModTest
     // test_freemodbus();
-    Test_TMC5160_Comm(); // TMC5160 SPI通讯测试
+     //Test_TMC5160_Comm(); // TMC5160 SPI读写测试
+	Test_Speed_Mode(); // 测试速度模式下的电机旋转 
 #endif
 
     while (1)
@@ -69,8 +73,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM5)
     {
-			HAL_IWDG_Refresh(&hiwdg); // 喂狗，防止 IWDG 超时复位
-      //HAL_GPIO_TogglePin(MCU_LED_GPIO_Port, MCU_LED_Pin); // LED 1s亮暗一次（500ms）
+		HAL_IWDG_Refresh(&hiwdg); // 喂狗，防止 IWDG 超时复位
+        //HAL_GPIO_TogglePin(MCU_LED_GPIO_Port, MCU_LED_Pin); // LED 1s亮暗一次（500ms）
     }
 }
 

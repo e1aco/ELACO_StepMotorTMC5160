@@ -1,7 +1,4 @@
-*** Using Compiler 'V5.06 update 7 (build 960)', folder: 'D:\keil5\ARM\ARM_Compiler_5.06u7\Bin'
-Build target 'StepMotorDriver_Keil'
-linking...
-Program Size: Code=12830 RO-data=450 RW-data=216 ZI-data=1672  
-FromELF: creating hex file...
-"StepMotorDriver_Keil\StepMotorDriver_Keil.axf" - 0 Error(s), 0 Warning(s).
-Build Time Elapsed:  00:00:01
+Load "StepMotorDriver_Keil\\StepMotorDriver_Keil.axf" 
+No ST-LINK detected
+Error: Flash Download failed  -  Target DLL has been cancelled
+Flash Load finished at 13:34:18

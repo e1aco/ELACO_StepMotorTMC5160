@@ -745,6 +745,11 @@
               <FileType>1</FileType>
               <FilePath>..\ModTest\test_tmc5160.c</FilePath>
             </File>
+            <File>
+              <FileName>test_speed_mode.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\ModTest\test_speed_mode.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
