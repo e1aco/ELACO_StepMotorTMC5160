@@ -2045,28 +2045,28 @@ Memory Map of the image
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
     0x08000000   0x08000000   0x00000188   Data   RO            3    RESET               startup_stm32f407xx.o
-    0x08000188   0x08000188   0x00000000   Code   RO         4730  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
-    0x08000188   0x08000188   0x00000004   Code   RO         4743    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
-    0x0800018c   0x0800018c   0x00000004   Code   RO         4746    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
-    0x08000190   0x08000190   0x00000000   Code   RO         4748    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
-    0x08000190   0x08000190   0x00000000   Code   RO         4750    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
-    0x08000190   0x08000190   0x00000008   Code   RO         4751    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
-    0x08000198   0x08000198   0x00000004   Code   RO         4758    .ARM.Collect$$$$0000000E  mc_w.l(entry12b.o)
-    0x0800019c   0x0800019c   0x00000000   Code   RO         4753    .ARM.Collect$$$$0000000F  mc_w.l(entry10a.o)
-    0x0800019c   0x0800019c   0x00000000   Code   RO         4755    .ARM.Collect$$$$00000011  mc_w.l(entry11a.o)
-    0x0800019c   0x0800019c   0x00000004   Code   RO         4744    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
+    0x08000188   0x08000188   0x00000000   Code   RO         4902  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
+    0x08000188   0x08000188   0x00000004   Code   RO         4915    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
+    0x0800018c   0x0800018c   0x00000004   Code   RO         4918    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
+    0x08000190   0x08000190   0x00000000   Code   RO         4920    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
+    0x08000190   0x08000190   0x00000000   Code   RO         4922    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
+    0x08000190   0x08000190   0x00000008   Code   RO         4923    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
+    0x08000198   0x08000198   0x00000004   Code   RO         4930    .ARM.Collect$$$$0000000E  mc_w.l(entry12b.o)
+    0x0800019c   0x0800019c   0x00000000   Code   RO         4925    .ARM.Collect$$$$0000000F  mc_w.l(entry10a.o)
+    0x0800019c   0x0800019c   0x00000000   Code   RO         4927    .ARM.Collect$$$$00000011  mc_w.l(entry11a.o)
+    0x0800019c   0x0800019c   0x00000004   Code   RO         4916    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
     0x080001a0   0x080001a0   0x00000024   Code   RO            4    .text               startup_stm32f407xx.o
-    0x080001c4   0x080001c4   0x00000062   Code   RO         4733    .text               mc_w.l(uldiv.o)
-    0x08000226   0x08000226   0x00000024   Code   RO         4737    .text               mc_w.l(memcpya.o)
-    0x0800024a   0x0800024a   0x00000024   Code   RO         4739    .text               mc_w.l(memseta.o)
-    0x0800026e   0x0800026e   0x0000001e   Code   RO         4759    .text               mc_w.l(llshl.o)
-    0x0800028c   0x0800028c   0x00000020   Code   RO         4761    .text               mc_w.l(llushr.o)
-    0x080002ac   0x080002ac   0x00000024   Code   RO         4763    .text               mc_w.l(init.o)
+    0x080001c4   0x080001c4   0x00000062   Code   RO         4905    .text               mc_w.l(uldiv.o)
+    0x08000226   0x08000226   0x00000024   Code   RO         4909    .text               mc_w.l(memcpya.o)
+    0x0800024a   0x0800024a   0x00000024   Code   RO         4911    .text               mc_w.l(memseta.o)
+    0x0800026e   0x0800026e   0x0000001e   Code   RO         4931    .text               mc_w.l(llshl.o)
+    0x0800028c   0x0800028c   0x00000020   Code   RO         4933    .text               mc_w.l(llushr.o)
+    0x080002ac   0x080002ac   0x00000024   Code   RO         4935    .text               mc_w.l(init.o)
     0x080002d0   0x080002d0   0x00000002   Code   RO          470    i.BusFault_Handler  stm32f4xx_it.o
     0x080002d2   0x080002d2   0x00000002   PAD
     0x080002d4   0x080002d4   0x0000000c   Code   RO          471    i.CAN1_RX0_IRQHandler  stm32f4xx_it.o
-    0x080002e0   0x080002e0   0x00000068   Code   RO         3887    i.Can_Init          ela_can.o
-    0x08000348   0x08000348   0x00000030   Code   RO         3889    i.Can_SendMessageExt  ela_can.o
+    0x080002e0   0x080002e0   0x00000068   Code   RO         4029    i.Can_Init          ela_can.o
+    0x08000348   0x08000348   0x00000030   Code   RO         4031    i.Can_SendMessageExt  ela_can.o
     0x08000378   0x08000378   0x00000002   Code   RO          472    i.DebugMon_Handler  stm32f4xx_it.o
     0x0800037a   0x0800037a   0x00000004   Code   RO           13    i.Error_Handler     main.o
     0x0800037e   0x0800037e   0x00000024   Code   RO          582    i.HAL_CAN_ActivateNotification  stm32f4xx_hal_can.o
@@ -2159,19 +2159,19 @@ Memory Map of the image
     0x08002414   0x08002414   0x00000038   Code   RO          430    i.MX_USART1_UART_Init  usart.o
     0x0800244c   0x0800244c   0x00000002   Code   RO          474    i.MemManage_Handler  stm32f4xx_it.o
     0x0800244e   0x0800244e   0x00000002   PAD
-    0x08002450   0x08002450   0x00000070   Code   RO         4693    i.Monitor_Chip      test_speed_mode.o
+    0x08002450   0x08002450   0x00000070   Code   RO         4838    i.Monitor_Chip      test_speed_mode.o
     0x080024c0   0x080024c0   0x00000002   Code   RO          475    i.NMI_Handler       stm32f4xx_it.o
     0x080024c2   0x080024c2   0x00000002   Code   RO          476    i.PendSV_Handler    stm32f4xx_it.o
     0x080024c4   0x080024c4   0x0000006c   Code   RO         2044    i.SPI_EndRxTxTransaction  stm32f4xx_hal_spi.o
     0x08002530   0x08002530   0x000000bc   Code   RO         2049    i.SPI_WaitFlagStateUntilTimeout  stm32f4xx_hal_spi.o
     0x080025ec   0x080025ec   0x00000002   Code   RO          477    i.SVC_Handler       stm32f4xx_it.o
     0x080025ee   0x080025ee   0x00000002   PAD
-    0x080025f0   0x080025f0   0x00000080   Code   RO         4694    i.SpeedMode_SingleChip  test_speed_mode.o
+    0x080025f0   0x080025f0   0x00000080   Code   RO         4839    i.SpeedMode_SingleChip  test_speed_mode.o
     0x08002670   0x08002670   0x00000004   Code   RO          478    i.SysTick_Handler   stm32f4xx_it.o
     0x08002674   0x08002674   0x00000094   Code   RO           14    i.SystemClock_Config  main.o
     0x08002708   0x08002708   0x00000010   Code   RO         3654    i.SystemInit        system_stm32f4xx.o
     0x08002718   0x08002718   0x0000000c   Code   RO          479    i.TIM5_IRQHandler   stm32f4xx_it.o
-    0x08002724   0x08002724   0x00000020   Code   RO         4559    i.TIM7_IRQHandler   porttimer.o
+    0x08002724   0x08002724   0x00000020   Code   RO         4701    i.TIM7_IRQHandler   porttimer.o
     0x08002744   0x08002744   0x000000d0   Code   RO         2412    i.TIM_Base_SetConfig  stm32f4xx_hal_tim.o
     0x08002814   0x08002814   0x0000001a   Code   RO         2413    i.TIM_CCxChannelCmd  stm32f4xx_hal_tim.o
     0x0800282e   0x0800282e   0x00000014   Code   RO         2423    i.TIM_ETR_SetConfig  stm32f4xx_hal_tim.o
@@ -2184,40 +2184,40 @@ Memory Map of the image
     0x080029d8   0x080029d8   0x00000022   Code   RO         2430    i.TIM_TI1_ConfigInputStage  stm32f4xx_hal_tim.o
     0x080029fa   0x080029fa   0x00000024   Code   RO         2432    i.TIM_TI2_ConfigInputStage  stm32f4xx_hal_tim.o
     0x08002a1e   0x08002a1e   0x00000002   PAD
-    0x08002a20   0x08002a20   0x0000009c   Code   RO         4695    i.Test_Speed_Mode   test_speed_mode.o
-    0x08002abc   0x08002abc   0x00000024   Code   RO         3923    i.Timer_Init        ela_timer.o
-    0x08002ae0   0x08002ae0   0x00000038   Code   RO         3947    i.Tmc5160_Init      ela_tmc5160.o
-    0x08002b18   0x08002b18   0x0000008c   Code   RO         3948    i.Tmc5160_Mode      ela_tmc5160.o
-    0x08002ba4   0x08002ba4   0x000000f8   Code   RO         3949    i.Tmc5160_ReadReg   ela_tmc5160.o
-    0x08002c9c   0x08002c9c   0x00000094   Code   RO         3950    i.Tmc5160_WriteReg  ela_tmc5160.o
+    0x08002a20   0x08002a20   0x0000009c   Code   RO         4840    i.Test_Speed_Mode   test_speed_mode.o
+    0x08002abc   0x08002abc   0x00000024   Code   RO         4065    i.Timer_Init        ela_timer.o
+    0x08002ae0   0x08002ae0   0x00000038   Code   RO         4089    i.Tmc5160_Init      ela_tmc5160.o
+    0x08002b18   0x08002b18   0x0000008c   Code   RO         4090    i.Tmc5160_Mode      ela_tmc5160.o
+    0x08002ba4   0x08002ba4   0x000000f8   Code   RO         4091    i.Tmc5160_ReadReg   ela_tmc5160.o
+    0x08002c9c   0x08002c9c   0x00000094   Code   RO         4092    i.Tmc5160_WriteReg  ela_tmc5160.o
     0x08002d30   0x08002d30   0x0000010c   Code   RO         3346    i.UART_SetConfig    stm32f4xx_hal_uart.o
     0x08002e3c   0x08002e3c   0x00000002   Code   RO          480    i.UsageFault_Handler  stm32f4xx_it.o
     0x08002e3e   0x08002e3e   0x00000020   Code   RO         1575    i.__NVIC_SetPriority  stm32f4xx_hal_cortex.o
-    0x08002e5e   0x08002e5e   0x0000000e   Code   RO         4767    i.__scatterload_copy  mc_w.l(handlers.o)
-    0x08002e6c   0x08002e6c   0x00000002   Code   RO         4768    i.__scatterload_null  mc_w.l(handlers.o)
-    0x08002e6e   0x08002e6e   0x0000000e   Code   RO         4769    i.__scatterload_zeroinit  mc_w.l(handlers.o)
-    0x08002e7c   0x08002e7c   0x00000072   Code   RO         4252    i.eMBFuncReadCoils  mbfunccoils.o
-    0x08002eee   0x08002eee   0x00000072   Code   RO         4279    i.eMBFuncReadDiscreteInputs  mbfuncdisc.o
-    0x08002f60   0x08002f60   0x0000005e   Code   RO         4291    i.eMBFuncReadHoldingRegister  mbfuncholding.o
-    0x08002fbe   0x08002fbe   0x00000062   Code   RO         4321    i.eMBFuncReadInputRegister  mbfuncinput.o
-    0x08003020   0x08003020   0x0000009c   Code   RO         4292    i.eMBFuncReadWriteMultipleHoldingRegister  mbfuncholding.o
-    0x080030bc   0x080030bc   0x00000024   Code   RO         4333    i.eMBFuncReportSlaveID  mbfuncother.o
-    0x080030e0   0x080030e0   0x00000056   Code   RO         4253    i.eMBFuncWriteCoil  mbfunccoils.o
-    0x08003136   0x08003136   0x00000032   Code   RO         4293    i.eMBFuncWriteHoldingRegister  mbfuncholding.o
-    0x08003168   0x08003168   0x00000064   Code   RO         4254    i.eMBFuncWriteMultipleCoils  mbfunccoils.o
-    0x080031cc   0x080031cc   0x0000004e   Code   RO         4294    i.eMBFuncWriteMultipleHoldingRegister  mbfuncholding.o
+    0x08002e5e   0x08002e5e   0x0000000e   Code   RO         4939    i.__scatterload_copy  mc_w.l(handlers.o)
+    0x08002e6c   0x08002e6c   0x00000002   Code   RO         4940    i.__scatterload_null  mc_w.l(handlers.o)
+    0x08002e6e   0x08002e6e   0x0000000e   Code   RO         4941    i.__scatterload_zeroinit  mc_w.l(handlers.o)
+    0x08002e7c   0x08002e7c   0x00000072   Code   RO         4394    i.eMBFuncReadCoils  mbfunccoils.o
+    0x08002eee   0x08002eee   0x00000072   Code   RO         4421    i.eMBFuncReadDiscreteInputs  mbfuncdisc.o
+    0x08002f60   0x08002f60   0x0000005e   Code   RO         4433    i.eMBFuncReadHoldingRegister  mbfuncholding.o
+    0x08002fbe   0x08002fbe   0x00000062   Code   RO         4463    i.eMBFuncReadInputRegister  mbfuncinput.o
+    0x08003020   0x08003020   0x0000009c   Code   RO         4434    i.eMBFuncReadWriteMultipleHoldingRegister  mbfuncholding.o
+    0x080030bc   0x080030bc   0x00000024   Code   RO         4475    i.eMBFuncReportSlaveID  mbfuncother.o
+    0x080030e0   0x080030e0   0x00000056   Code   RO         4395    i.eMBFuncWriteCoil  mbfunccoils.o
+    0x08003136   0x08003136   0x00000032   Code   RO         4435    i.eMBFuncWriteHoldingRegister  mbfuncholding.o
+    0x08003168   0x08003168   0x00000064   Code   RO         4396    i.eMBFuncWriteMultipleCoils  mbfunccoils.o
+    0x080031cc   0x080031cc   0x0000004e   Code   RO         4436    i.eMBFuncWriteMultipleHoldingRegister  mbfuncholding.o
     0x0800321a   0x0800321a   0x00000002   PAD
-    0x0800321c   0x0800321c   0x0000009c   Code   RO         4445    i.eMBRegCoilsCB     port.o
-    0x080032b8   0x080032b8   0x00000080   Code   RO         4446    i.eMBRegDiscreteCB  port.o
-    0x08003338   0x08003338   0x00000058   Code   RO         4447    i.eMBRegHoldingCB   port.o
-    0x08003390   0x08003390   0x00000050   Code   RO         4448    i.eMBRegInputCB     port.o
+    0x0800321c   0x0800321c   0x0000009c   Code   RO         4587    i.eMBRegCoilsCB     port.o
+    0x080032b8   0x080032b8   0x00000080   Code   RO         4588    i.eMBRegDiscreteCB  port.o
+    0x08003338   0x08003338   0x00000058   Code   RO         4589    i.eMBRegHoldingCB   port.o
+    0x08003390   0x08003390   0x00000050   Code   RO         4590    i.eMBRegInputCB     port.o
     0x080033e0   0x080033e0   0x00000030   Code   RO         3695    i.elaco_main        elaco_main.o
     0x08003410   0x08003410   0x00000036   Code   RO           15    i.main              main.o
-    0x08003446   0x08003446   0x00000018   Code   RO         4421    i.prveMBError2Exception  mbutils.o
+    0x08003446   0x08003446   0x00000018   Code   RO         4563    i.prveMBError2Exception  mbutils.o
     0x0800345e   0x0800345e   0x00000010   Data   RO         3655    .constdata          system_stm32f4xx.o
     0x0800346e   0x0800346e   0x00000008   Data   RO         3656    .constdata          system_stm32f4xx.o
     0x08003476   0x08003476   0x00000002   PAD
-    0x08003478   0x08003478   0x00000020   Data   RO         4765    Region$$Table       anon$$obj.o
+    0x08003478   0x08003478   0x00000020   Data   RO         4937    Region$$Table       anon$$obj.o
 
 
     Execution Region RW_IRAM2 (Exec base: 0x10000000, Load base: 0x08003570, Size: 0x00000000, Max: 0x00010000, ABSOLUTE)
@@ -2231,19 +2231,19 @@ Memory Map of the image
 
     0x20000000   0x08003498   0x0000000c   Data   RW         1734    .data               stm32f4xx_hal.o
     0x2000000c   0x080034a4   0x00000004   Data   RW         3657    .data               system_stm32f4xx.o
-    0x20000010   0x080034a8   0x00000004   Data   RW         3951    .data               ela_tmc5160.o
-    0x20000014   0x080034ac   0x000000ac   Data   RW         4087    .data               mb.o
-    0x200000c0   0x08003558   0x00000002   Data   RW         4336    .data               mbfuncother.o
-    0x200000c2   0x0800355a   0x00000014   Data   RW         4450    .data               port.o
+    0x20000010   0x080034a8   0x00000004   Data   RW         4093    .data               ela_tmc5160.o
+    0x20000014   0x080034ac   0x000000ac   Data   RW         4229    .data               mb.o
+    0x200000c0   0x08003558   0x00000002   Data   RW         4478    .data               mbfuncother.o
+    0x200000c2   0x0800355a   0x00000014   Data   RW         4592    .data               port.o
     0x200000d6   0x0800356e   0x00000002   PAD
     0x200000d8        -       0x00000028   Zero   RW          245    .bss                can.o
     0x20000100        -       0x0000000c   Zero   RW          285    .bss                iwdg.o
     0x2000010c        -       0x00000058   Zero   RW          317    .bss                spi.o
     0x20000164        -       0x00000168   Zero   RW          364    .bss                tim.o
     0x200002cc        -       0x00000048   Zero   RW          431    .bss                usart.o
-    0x20000314        -       0x00000020   Zero   RW         4335    .bss                mbfuncother.o
-    0x20000334        -       0x00000028   Zero   RW         4449    .bss                port.o
-    0x2000035c        -       0x0000001c   Zero   RW         4696    .bss                test_speed_mode.o
+    0x20000314        -       0x00000020   Zero   RW         4477    .bss                mbfuncother.o
+    0x20000334        -       0x00000028   Zero   RW         4591    .bss                port.o
+    0x2000035c        -       0x0000001c   Zero   RW         4841    .bss                test_speed_mode.o
     0x20000378        -       0x00000400   Zero   RW            1    STACK               startup_stm32f407xx.o
 
 
@@ -2258,10 +2258,10 @@ Image component sizes
        152         16          0          0          0       1396   ela_can.o
         36          8          0          0          0        537   ela_timer.o
        592         50          0          4          0       7215   ela_tmc5160.o
-       108         20          0          0          0       2397   elaco_main.o
+       108         20          0          0          0     622049   elaco_main.o
        416         24          0          0          0       1255   gpio.o
         44          8          0          0         12        807   iwdg.o
-       206          8          0          0          0     716080   main.o
+       206          8          0          0          0     712636   main.o
          0          0          0        172          0       5950   mb.o
        300          0          0          0          0       3898   mbfunccoils.o
        114          0          0          0          0       1620   mbfuncdisc.o
@@ -2286,12 +2286,12 @@ Image component sizes
        368         10          0          0          0       2168   stm32f4xx_hal_uart.o
         44         12          0          0          0       5570   stm32f4xx_it.o
         16          4         24          4          0       1255   system_stm32f4xx.o
-       396         34          0          0         28       3116   test_speed_mode.o
+       396         34          0          0         28       6560   test_speed_mode.o
       1004         84          0          0        360       5800   tim.o
        180         22          0          0         72       1890   usart.o
 
     ----------------------------------------------------------------------
-     12692        746        450        216       1696     877996   Object Totals
+     12692        746        450        216       1696    1497648   Object Totals
          0          0         32          0          0          0   (incl. Generated)
         34          0          2          2          0          0   (incl. Padding)
 
@@ -2336,8 +2336,8 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-     13014        762        450        216       1696     866116   Grand Totals
-     13014        762        450        216       1696     866116   ELF Image Totals
+     13014        762        450        216       1696    1485768   Grand Totals
+     13014        762        450        216       1696    1485768   ELF Image Totals
      13014        762        450        216          0          0   ROM Totals
 
 ==============================================================================

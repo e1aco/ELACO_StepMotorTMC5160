@@ -49,7 +49,7 @@ void elaco_main(void)
 
 #ifdef ModTest
     // test_freemodbus();
-     //Test_TMC5160_Comm(); // TMC5160 SPI读写测试
+    // Test_TMC5160_Comm(); // TMC5160 SPI读写测试
 	Test_Speed_Mode(); // 测试速度模式下的电机旋转 
 #endif
 
