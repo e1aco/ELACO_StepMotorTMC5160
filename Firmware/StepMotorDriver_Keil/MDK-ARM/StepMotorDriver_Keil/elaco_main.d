@@ -60,3 +60,4 @@ stepmotordriver_keil\elaco_main.o: ../FreeModbus/modbus/mbproto.h
 stepmotordriver_keil\elaco_main.o: ../ModTest/test_freemodbus.h
 stepmotordriver_keil\elaco_main.o: ../ModTest/test_tmc5160.h
 stepmotordriver_keil\elaco_main.o: ../ModTest/test_speed_mode.h
+stepmotordriver_keil\elaco_main.o: ../ModTest/test_encoder.h

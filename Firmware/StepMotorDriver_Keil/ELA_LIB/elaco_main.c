@@ -10,6 +10,7 @@
 #include "test_freemodbus.h"
 #include "test_tmc5160.h"
 #include "test_speed_mode.h"
+#include "test_encoder.h"
 
 #endif
 
@@ -48,9 +49,10 @@ void elaco_main(void)
     Tmc5160_Mode(&g_tmc5160_chip2_st);
 
 #ifdef ModTest
-    // test_freemodbus();
-    // Test_TMC5160_Comm(); // TMC5160 SPI读写测试
-	Test_Speed_Mode(); // 测试速度模式下的电机旋转 
+	//test_freemodbus();
+	//Test_TMC5160_Comm(); // TMC5160 SPI读写测试
+	//Test_Speed_Mode(); // 测试速度模式下的电机旋转
+	Test_Encoder();      // 编码器验证测试
 #endif
 
     while (1)

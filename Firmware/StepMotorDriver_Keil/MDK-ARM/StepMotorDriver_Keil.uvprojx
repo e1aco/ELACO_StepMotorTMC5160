@@ -750,6 +750,11 @@
               <FileType>1</FileType>
               <FilePath>..\ModTest\test_speed_mode.c</FilePath>
             </File>
+            <File>
+              <FileName>test_encoder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\ModTest\test_encoder.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

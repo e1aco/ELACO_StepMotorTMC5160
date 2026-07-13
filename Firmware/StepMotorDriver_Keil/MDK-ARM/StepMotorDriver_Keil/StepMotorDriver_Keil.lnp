@@ -55,6 +55,7 @@
 "stepmotordriver_keil\test_freemodbus.o"
 "stepmotordriver_keil\test_tmc5160.o"
 "stepmotordriver_keil\test_speed_mode.o"
+"stepmotordriver_keil\test_encoder.o"
 --library_type=microlib --strict --scatter "StepMotorDriver_Keil\StepMotorDriver_Keil.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
