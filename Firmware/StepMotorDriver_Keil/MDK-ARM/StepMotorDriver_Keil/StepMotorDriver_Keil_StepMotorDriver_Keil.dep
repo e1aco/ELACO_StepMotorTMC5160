@@ -1096,7 +1096,7 @@ I (../FreeModbus/modbus/mbproto.h)(0x5B9AC2A6)
 I (../ModTest/test_freemodbus.h)(0x6A4C9A36)
 I (../ModTest/test_tmc5160.h)(0x6A4CC682)
 I (../ModTest/test_speed_mode.h)(0x6A4DE8BA)
-I (../ModTest/test_encoder.h)(0x6A5096A8)
+I (../ModTest/test_encoder.h)(0x6A54444D)
 F (..\ELA_LIB\elaco_main.h)(0x6A4CC511)()
 F (..\ELA_LIB\ela_queue.c)(0x6A462B18)(--c99 -c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../ELA_LIB -I ../FreeModbus/modbus -I ../FreeModbus/port -I ../ModTest-I.\RTE\_StepMotorDriver_Keil-ID:\keil5\ARM\CMSIS\6.3.0\CMSIS\Core\Include-ID:\keil5\Keil\STM32F4xx_DFP\3.1.1\Device\Include-D__UVISION_VERSION="543" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx-o stepmotordriver_keil\ela_queue.o --omf_browse stepmotordriver_keil\ela_queue.crf --depend stepmotordriver_keil\ela_queue.d)
 I (..\ELA_LIB\ela_queue.h)(0x6A4C96A5)
@@ -1727,8 +1727,8 @@ I (../ELA_LIB/ela_timer.h)(0x6A4628A5)
 I (../ELA_LIB/ela_tmc5160.h)(0x6A4F323A)
 I (../ELA_LIB/ela_eeprom.h)(0x6A462BDD)
 I (../ELA_LIB/ela_button.h)(0x6A462D7F)
-F (..\ModTest\test_encoder.c)(0x6A50BD13)(--c99 -c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../ELA_LIB -I ../FreeModbus/modbus -I ../FreeModbus/port -I ../ModTest-I.\RTE\_StepMotorDriver_Keil-ID:\keil5\ARM\CMSIS\6.3.0\CMSIS\Core\Include-ID:\keil5\Keil\STM32F4xx_DFP\3.1.1\Device\Include-D__UVISION_VERSION="543" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx-o stepmotordriver_keil\test_encoder.o --omf_browse stepmotordriver_keil\test_encoder.crf --depend stepmotordriver_keil\test_encoder.d)
-I (..\ModTest\test_encoder.h)(0x6A5096A8)
+F (..\ModTest\test_encoder.c)(0x6A544446)(--c99 -c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../ELA_LIB -I ../FreeModbus/modbus -I ../FreeModbus/port -I ../ModTest-I.\RTE\_StepMotorDriver_Keil-ID:\keil5\ARM\CMSIS\6.3.0\CMSIS\Core\Include-ID:\keil5\Keil\STM32F4xx_DFP\3.1.1\Device\Include-D__UVISION_VERSION="543" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx-o stepmotordriver_keil\test_encoder.o --omf_browse stepmotordriver_keil\test_encoder.crf --depend stepmotordriver_keil\test_encoder.d)
+I (..\ModTest\test_encoder.h)(0x6A54444D)
 I (../ELA_LIB/elaco_main.h)(0x6A4CC511)
 I (D:\keil5\ARM\ARM_Compiler_5.06u7\include\stdbool.h)(0x5E8E3CC2)
 I (D:\keil5\ARM\ARM_Compiler_5.06u7\include\string.h)(0x5E8E3CC2)
