@@ -10,5 +10,6 @@ HAL_StatusTypeDef Can_SendMessage(unsigned short id,
 HAL_StatusTypeDef Can_SendMessageExt(unsigned int id,
                                       unsigned char *data,
                                       unsigned char len);
+unsigned char Can_ReceiveMessage(unsigned char *data);
 
 #endif

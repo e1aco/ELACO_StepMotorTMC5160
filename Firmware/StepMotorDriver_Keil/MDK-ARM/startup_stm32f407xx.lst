@@ -831,11 +831,10 @@ ARM Macro Assembler    Page 13
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp.sp --apcs=
 interwork --depend=stepmotordriver_keil\startup_stm32f407xx.d -ostepmotordriver
-_keil\startup_stm32f407xx.o -I.\RTE\_StepMotorDriver_Keil -ID:\keil5\ARM\CMSIS\
-6.3.0\CMSIS\Core\Include -ID:\keil5\Keil\STM32F4xx_DFP\3.1.1\Device\Include --p
-redefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 543" --predefi
-ne="STM32F407xx SETA 1" --predefine="_RTE_ SETA 1" --list=startup_stm32f407xx.l
-st startup_stm32f407xx.s
+_keil\startup_stm32f407xx.o -I.\RTE\_StepMotorDriver_Keil -IC:\Keil_v5\ARM\CMSI
+S\6.3.0\CMSIS\Core\Include -IDevice\Include --predefine="__MICROLIB SETA 1" --p
+redefine="__UVISION_VERSION SETA 543" --predefine="_RTE_ SETA 1" --list=startup
+_stm32f407xx.lst startup_stm32f407xx.s
 
 
 
@@ -1920,4 +1919,4 @@ Symbol: __main
       At line 176 in file startup_stm32f407xx.s
 Comment: __main used once
 2 symbols
-445 symbols in table
+444 symbols in table

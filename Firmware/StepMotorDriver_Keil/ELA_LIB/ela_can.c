@@ -13,9 +13,9 @@ void Can_Init(void)
     sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
     sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
     sFilterConfig.FilterIdHigh =
-        ((0x1AA55F12 << 3) | 0x4) >> 16;
+        ((0x1AA55F42 << 3) | 0x4) >> 16;
     sFilterConfig.FilterIdLow =
-        ((0x1AA55F12 << 3) | 0x4) & 0xFFFF;
+        ((0x1AA55F42 << 3) | 0x4) & 0xFFFF;
     sFilterConfig.FilterMaskIdHigh = 0xFFFF;
     sFilterConfig.FilterMaskIdLow  = 0xFFFF;
     sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
@@ -43,9 +43,6 @@ void Can_Init(void)
 /* can usr start */
 
 /****
- * @ 原型: HAL_StatusTypeDef Can_SendMessage(
- *            unsigned short id, unsigned char *data,
- *            unsigned char len)
  * @ 输入: unsigned short id, unsigned char *data,
  *        unsigned char len
  * @ 输出: HAL_StatusTypeDef
@@ -71,9 +68,6 @@ HAL_StatusTypeDef Can_SendMessage(unsigned short id,
 
 
 /****
- * @ 原型: HAL_StatusTypeDef Can_SendMessageExt(
- *            unsigned int id, unsigned char *data,
- *            unsigned char len)
  * @ 输入: unsigned int id, unsigned char *data,
  *        unsigned char len
  * @ 输出: HAL_StatusTypeDef
@@ -95,6 +89,32 @@ HAL_StatusTypeDef Can_SendMessageExt(unsigned int id,
 
   return HAL_CAN_AddTxMessage(&hcan1, &tx_header,
                                data, &tx_mailbox);
+}
+
+/****
+ * @ 输入: unsigned char *data: 接收数据缓冲区指针（长度至少CAN_LENGTH字节）
+ * @ 输出: unsigned char: 成功返回 TRUE(0)，队列空返回 FALSE(1)
+ * @ 说明: 从CAN接收队列头部读取一条消息并删除该消息，
+ *        数据通过data指针返回
+ ********/
+unsigned char Can_ReceiveMessage(unsigned char *data)
+{
+    unsigned char i;
+    unsigned char *p_data;
+
+    p_data = (unsigned char *)Queue_First(&g_can_queue_st);
+    if (p_data == QUEUE_NULL)
+    {
+        return FALSE;
+    }
+
+    for (i = 0; i < CAN_LENGTH; i++)
+    {
+        data[i] = p_data[i];
+    }
+
+    Queue_Delete(&g_can_queue_st);
+    return TRUE;
 }
 
 /* can usr end */

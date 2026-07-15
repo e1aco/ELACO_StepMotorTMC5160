@@ -14,29 +14,9 @@
 
 #endif
 
-/*
- * 现阶段：
- * 1. 串口接收不定长数据
- * 2. CAN 发送与接收
- * 3.TIM4_CH1给14Mhz频率的方波,计算值是对的，但是测试没测出来
- * 4.驱动芯片的功能转换
+/*  主循环函数部分 */
+uint8_t can_queuedata[CAN_LENGTH];
 
- * 后续内容：
- * 1.SPI配置
- * 2.对两个驱动芯片的SPI配置（CS）
- */
-
-#define LED_STORE_ADDR 0   // LED在g_eeprom_datablock_st中的存储偏移
-#define STORE_DELAY_MS 500 // 按键按下后延迟500ms再写入EEPROM
-
-/* -1- 开始 主循环函数部分 */
-
-/****
- * @ 原型: void elaco_main(void)
- * @ 输入: void
- * @ 输出: void
- * @ 说明: 主循环函数，完成外设初始化后进入无限循环
- ********/
 void elaco_main(void)
 {
     Can_Init();   // CAN 初始化
@@ -45,19 +25,23 @@ void elaco_main(void)
     Tmc5160_Init(); // TMC5160 初始化
     g_tmc5160_chip1_st.mode = 1;
     g_tmc5160_chip2_st.mode = 1;
-    Tmc5160_Mode(&g_tmc5160_chip1_st);// 设置为模式1
+    Tmc5160_Mode(&g_tmc5160_chip1_st); // 设置为模式1
     Tmc5160_Mode(&g_tmc5160_chip2_st);
 
 #ifdef ModTest
-	//test_freemodbus();
-	//Test_TMC5160_Comm(); // TMC5160 SPI读写测试
-	//Test_Speed_Mode(); // 测试速度模式下的电机旋转
-	Test_Encoder();      // 编码器验证测试
+    // test_freemodbus();
+    // Test_TMC5160_Comm(); // TMC5160 SPI读写测试
+    // Test_Speed_Mode(); // 测试速度模式下的电机旋转
+    Test_Encoder(); // 编码器验证测试
 #endif
 
     while (1)
     {
-        
+        if (Queue_IsEmpty(&g_can_queue_st) != 0)
+        {
+            Can_ReceiveMessage(can_queuedata);                // CAN 接收消息处理
+            Can_SendMessageExt(0x1AA55F43, can_queuedata, 8); // CAN 发送消息处理
+        }
     }
 }
 
@@ -75,8 +59,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM5)
     {
-		HAL_IWDG_Refresh(&hiwdg); // 喂狗，防止 IWDG 超时复位
-        //HAL_GPIO_TogglePin(MCU_LED_GPIO_Port, MCU_LED_Pin); // LED 1s亮暗一次（500ms）
+        HAL_IWDG_Refresh(&hiwdg); // 喂狗，防止 IWDG 超时复位
+        // HAL_GPIO_TogglePin(MCU_LED_GPIO_Port, MCU_LED_Pin); // LED 1s亮暗一次（500ms）
     }
 }
 
@@ -95,7 +79,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(
     if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0,
                              &rx_header, rx_data) == HAL_OK)
     {
-        Can_SendMessageExt(0x1AA55F02, rx_data, 8);
+        uint8_t check_code = (uint8_t)(rx_data[0] + rx_data[1] + rx_data[2] + rx_data[3] +
+                                       rx_data[4] + rx_data[5] + rx_data[6]);
+        if (check_code == rx_data[7])
+        {
+            Queue_Insert(&g_can_queue_st, rx_data);
+        }
     }
 }
 
