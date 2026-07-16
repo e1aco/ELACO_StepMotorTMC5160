@@ -1,10 +1,10 @@
 stepmotordriver_keil\mb.o: ..\FreeModbus\modbus\mb.c
-stepmotordriver_keil\mb.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
-stepmotordriver_keil\mb.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+stepmotordriver_keil\mb.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdlib.h
+stepmotordriver_keil\mb.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\string.h
 stepmotordriver_keil\mb.o: ..\FreeModbus\modbus\port.h
-stepmotordriver_keil\mb.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\assert.h
-stepmotordriver_keil\mb.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\inttypes.h
-stepmotordriver_keil\mb.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+stepmotordriver_keil\mb.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\assert.h
+stepmotordriver_keil\mb.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\inttypes.h
+stepmotordriver_keil\mb.o: D:\keil5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdint.h
 stepmotordriver_keil\mb.o: ..\FreeModbus\modbus\mb.h
 stepmotordriver_keil\mb.o: ..\FreeModbus\modbus\mbport.h
 stepmotordriver_keil\mb.o: ..\FreeModbus\modbus\mbproto.h

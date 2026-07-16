@@ -32,11 +32,7 @@ void elaco_main(void)
     Can_Init();   // CAN 初始化
     Timer_Init(); // 定时器初始化
 
-    Tmc5160_Init(); // TMC5160 初始化
-    g_tmc5160_chip1_st.mode = 1;
-    g_tmc5160_chip2_st.mode = 1;
-    Tmc5160_Mode(&g_tmc5160_chip1_st); // 设置为模式1
-    Tmc5160_Mode(&g_tmc5160_chip2_st);
+    Tmc5160_Init(); // TMC5160 初始化（含模式配置、基础寄存器、使能驱动）
 
 #ifdef ModTest
     // test_freemodbus();
@@ -47,16 +43,13 @@ void elaco_main(void)
 
     while (1)
     {
-        if (0 != Queue_IsEmpty(&g_can_queue_st))
+        if (0 == Can_ReceiveMessage(can_queuedata))
         {
-            if (0 == Can_ReceiveMessage(can_queuedata))
-            {
-                Motor_ProcessCmd(can_queuedata);
-            }
+            Motor_ProcessCmd(can_queuedata);
         }
 
-        Motor_CheckArrival(); // 轮询电机到位状态并发送反馈
-        Motor_CheckError();   // 检测电机异常并发送反馈
+//        Motor_CheckArrival(); // 轮询电机到位状态并发送反馈
+//        Motor_CheckError();   // 检测电机异常并发送反馈
     }
 }
 
@@ -98,27 +91,33 @@ static void Motor_ExecOne(unsigned char motor,
         case 0x01:
             Tmc5160_ApplyProfile(chip, profile);
             Tmc5160_MoveTo(chip, value);
-            chip->move_pending = 1; // 到位后再发一次反馈
+            chip->move_pending = 1;
             break;
-        case 0x02:
+        case 0x02: // 相对位置正转
             Tmc5160_ApplyProfile(chip, profile);
             Tmc5160_MoveBy(chip, value);
-            chip->move_pending = 1; // 到位后再发一次反馈
+            chip->move_pending = 1;
             break;
-        case 0x03:
+        case 0x03: // 相对位置反转
+            Tmc5160_ApplyProfile(chip, profile);
+            Tmc5160_MoveBy(chip, -value);
+            chip->move_pending = 1;
+            break;
+        case 0x04: // 速度模式
             Tmc5160_ApplyProfile(chip, profile);
             Tmc5160_SetVelocity(chip, value);
             break;
-        case 0x04:
+        case 0x05: // 停止/刹车
             Tmc5160_StopMotor(chip);
-            chip->move_pending = 0; // 取消到位等待
+            chip->move_pending = 0;
             break;
         default:
             return;
     }
 
-    /* 0x01/0x02 立即发启动反馈，到位后再发一次
-       0x03/0x04 仅立即发送一次 */
+    /* 0x01/0x02/0x03 立即发启动反馈，到位后再发一次
+       0x04/0x05 仅立即发送一次 */
+
     Can_SendFeedback(motor,
                      Tmc5160_GetPosition(chip),
                      Tmc5160_GetStatusFlags(chip),

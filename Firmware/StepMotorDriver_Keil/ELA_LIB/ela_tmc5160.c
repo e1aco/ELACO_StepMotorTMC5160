@@ -215,25 +215,47 @@ unsigned int Tmc5160_ReadReg(TMC5160_T *CHIP_T,
 
 /****
  * @ 说明: 初始化TMC5160芯片结构体，
- *        设置芯片号和模式,使能芯片的电机驱动
+ *        设置芯片号和模式,配置基础寄存器,使能电机驱动
  ********/
 void Tmc5160_Init(void) {
-    g_tmc5160_chip1_st.chip_number = 1;
-    g_tmc5160_chip1_st.mode = 1;
-    g_tmc5160_chip2_st.chip_number = 2;
-    g_tmc5160_chip2_st.mode = 1;
+    unsigned char i;
+    TMC5160_T *chips[2] = { &g_tmc5160_chip1_st,
+                            &g_tmc5160_chip2_st };
 
-    CHIP1_DRV_ENN_SET;
-    CHIP2_DRV_ENN_SET;
+    for (i = 0; i < 2; i++) {
+        TMC5160_T *chip = chips[i];
+        chip->chip_number = i + 1;
+        chip->mode = 1;
+        chip->move_pending = 0;
+
+        Tmc5160_Mode(chip); // 设置 SD_MODE/SPI_MODE 引脚
+
+        /* 使能电机驱动 */
+        if (i == 0) {
+            CHIP1_DRV_ENN_RESET;
+        } else {
+            CHIP2_DRV_ENN_RESET;
+        }
+
+        /* 清除 Power-on 残留错误标志 */
+        Tmc5160_WriteReg(chip, TMC5160_GSTAT, 0x07);
+
+        /* 基础配置 */
+        Tmc5160_WriteReg(chip, TMC5160_GCONF, 0x00000004);
+        Tmc5160_WriteReg(chip, TMC5160_CHOPCONF, 0x000100C3);
+
+        /* 电机电流：IHOLD=125, IRUN=30, IHOLDDELAY=5 */
+        Tmc5160_WriteReg(chip, TMC5160_IHOLD_IRUN, 0x051E7D);
+    }
 }
 
 /* 运动参数组定义 */
 static const TMC5160_MotionProfile_T
     g_tmc5160_profiles_st[TMC5160_PROFILE_COUNT] = {
-    { 0, 10, 0, 0,   1000,   5000,    0,  1000, 10 },
-    { 0, 10, 0, 0,   5000,  20000,    0,  5000, 10 },
-    { 0, 10, 0, 0,  10000,  50000,    0, 10000, 10 },
-    { 0, 10, 0, 0,  20000, 100000,    0, 20000, 10 },
+    { 0, 10, 0, 0,   1000,   5000,   1000,  1000, 10 },
+    { 0, 10, 0, 0,   5000,  20000,   5000,  5000, 10 },
+    { 0, 10, 0, 0,  10000,  50000,  10000, 10000, 10 },
+    { 0, 10, 0, 0,  20000, 100000,  20000, 20000, 10 },
 };
 
 /****
