@@ -22,7 +22,8 @@
       "Bash(sed -i '105s/TransmitReceive/Transmit/' ela_tmc5160.c)",
       "Bash(sed -i '106s/tx_buf, rx_buf, 5/tx_buf, 5/' ela_tmc5160.c)",
       "Bash(sed -i '110s/TransmitReceive/Transmit/' ela_tmc5160.c)",
-      "Bash(sed -i '111s/tx_buf, rx_buf, 5/tx_buf, 5/' ela_tmc5160.c)"
+      "Bash(sed -i '111s/tx_buf, rx_buf, 5/tx_buf, 5/' ela_tmc5160.c)",
+      "Bash(dir *)"
     ]
   }
 }

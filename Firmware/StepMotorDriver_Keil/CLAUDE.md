@@ -64,10 +64,49 @@ Clock: HSE (8 MHz) → PLL (PLLM=4, PLLN=84, PLLP=2) → 168 MHz SYSCLK; APB1 = 
 - **UART IDLE detection**: `USER_UART_IRQHandler()` must be called **before** `HAL_UART_IRQHandler()` in the USART1 ISR — otherwise HAL may clear the IDLE flag.
 - **TMC5160 SPI access pattern**: Read requires 2 back-to-back `HAL_SPI_TransmitReceive()` calls with CS held low between them (but this implementation toggles CS between the two calls).
 
-### Current Status (2026-06-23)
+### Current Status (2026-07-15)
 
+- CAN protocol v1 defined: receive `0x1AA55F42`, feedback `0x1AA55F43` — see `.claude/memory/can-protocol.md`
+- CAN command processor implemented in `elaco_main.c` (Motor_ProcessCmd)
+- TMC5160 usr layer extended: motion profiles, position/velocity control, status readback
 - Flash EEPROM verified working
 - CAN and UART tested and functional
-- TMC5160 SPI driver written but **not yet tested on hardware** — waiting for hardware availability
-- TMC5160 `Tmc5160_Init()` and `Tmc5160_Mode()` calls are commented out in `elaco_main()` pending hardware
 - FreeModbus integrated but not activated
+
+## Code Style Rules (ELA_LIB)
+
+### Naming
+- **Files**: `ela_` prefix (e.g. `ela_button.c`), header guard `_ELA_XXX_H_`
+- **Functions**: `Module_ActionDetails` PascalCase — `Uart_SendString`, `Queue_IsFull`
+- **Global variables**: `g_` prefix (e.g. `g_rx1_offset`), struct instances add `_st` suffix
+- **Struct types**: `_T` suffix (e.g. `TMC5160_T`, `QUEUE_T`)
+- **Local/static variables**: all lowercase, no prefix
+- **Macros**: `UPPER_CASE` + underscores, `_MASK` suffix for bitmasks
+
+### Function Comment Format
+```
+/****
+ * @ 输入: <参数说明>（有输入参数时写，void时省略）
+ * @ 输出: <返回值说明>（非void时写）
+ * @ 说明: <功能描述>
+ * @ 注意: <注意事项>（可选）
+ ********/
+```
+
+### Layering (hlp → drv → usr → cac)
+Each `.c` file organizes functions in this order with section markers:
+```
+/* module hlp start */  — pure computation, no HAL/hardware
+/* module drv start */  — HAL calls, register operations
+/* module usr start */  — user-facing API
+/* module cac start */  — callbacks (only in elaco_main.c)
+```
+Each section ends with `/* module xxx end */`, separated by `//----------------------------------------------------------------------------------` (84 chars wide).
+
+### Formatting
+- Indent: 4 spaces (no tabs)
+- Braces: Egyptian style (opening brace on same line)
+- Line endings: CRLF (Windows)
+- Max line width: 84 characters
+- File must end with a blank line
+- Conditionals: constant on left (`0 == x`, not `x == 0`)

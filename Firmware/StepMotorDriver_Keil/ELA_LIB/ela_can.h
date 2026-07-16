@@ -11,5 +11,9 @@ HAL_StatusTypeDef Can_SendMessageExt(unsigned int id,
                                       unsigned char *data,
                                       unsigned char len);
 unsigned char Can_ReceiveMessage(unsigned char *data);
+void Can_SendFeedback(unsigned char motor_sel,
+                       int position,
+                       unsigned char status_flags,
+                       unsigned char motion_phase);
 
 #endif

@@ -12,6 +12,7 @@ typedef struct TMC5160
 {
     unsigned char chip_number; // 芯片号
     unsigned char mode;        // 模式
+    unsigned char move_pending; // 0=空闲, 1=运动到位反馈待发送
 } TMC5160_T;
 
 extern TMC5160_T g_tmc5160_chip1_st;
@@ -166,8 +167,23 @@ extern TMC5160_T g_tmc5160_chip2_st;
 #define TMC5160_LOST_STEPS     0x73
 /* -4- 结束 */
 
+/* -5- 运动参数组结构体 */
+typedef struct {
+    unsigned int vstart;
+    unsigned int vstop;
+    unsigned int v1;
+    unsigned int a1;
+    unsigned int amax;
+    unsigned int vmax;
+    unsigned int d1;
+    unsigned int dmax;
+    unsigned int tzerowait;
+} TMC5160_MotionProfile_T;
 
-/* -5- 函数原型 */
+#define TMC5160_PROFILE_COUNT  4 // 4组运动参数
+/* -5- 结束 */
+
+/* -6- 函数原型 */
 unsigned char Tmc5160_Mode(TMC5160_T *CHIP_T);
 void         Tmc5160_Init(void);
 unsigned char Tmc5160_WriteReg(TMC5160_T *CHIP_T,
@@ -175,6 +191,18 @@ unsigned char Tmc5160_WriteReg(TMC5160_T *CHIP_T,
                                 unsigned int data);
 unsigned int  Tmc5160_ReadReg(TMC5160_T *CHIP_T,
                                unsigned char reg_addr);
-/* -5- 结束 */
+void         Tmc5160_ApplyProfile(TMC5160_T *chip,
+                                   unsigned char profile_id);
+void         Tmc5160_MoveTo(TMC5160_T *chip, int target);
+void         Tmc5160_MoveBy(TMC5160_T *chip, int offset);
+void         Tmc5160_SetVelocity(TMC5160_T *chip,
+                                  int velocity);
+void         Tmc5160_StopMotor(TMC5160_T *chip);
+int          Tmc5160_GetPosition(TMC5160_T *chip);
+unsigned int Tmc5160_GetRampStat(TMC5160_T *chip);
+unsigned int Tmc5160_GetDrvStatus(TMC5160_T *chip);
+unsigned char Tmc5160_GetStatusFlags(TMC5160_T *chip);
+unsigned char Tmc5160_GetMotionPhase(TMC5160_T *chip);
+/* -6- 结束 */
 
 #endif

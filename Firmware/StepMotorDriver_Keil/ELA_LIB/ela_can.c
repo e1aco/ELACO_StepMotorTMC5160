@@ -117,4 +117,36 @@ unsigned char Can_ReceiveMessage(unsigned char *data)
     return TRUE;
 }
 
+/****
+ * @ 输入: motor_sel:电机选择(0x01~0x06)
+ *        position:当前位置值
+ *        status_flags:状态标志位
+ *        motion_phase:运动阶段
+ * @ 输出: void
+ * @ 说明: 按照反馈协议(0x1AA55F43)组装CAN帧并发送
+ ********/
+void Can_SendFeedback(unsigned char motor_sel,
+                       int position,
+                       unsigned char status_flags,
+                       unsigned char motion_phase)
+{
+    unsigned char data[CAN_LENGTH];
+    unsigned char i;
+
+    data[0] = (unsigned char)(position & 0xFF);
+    data[1] = (unsigned char)((position >> 8) & 0xFF);
+    data[2] = (unsigned char)((position >> 16) & 0xFF);
+    data[3] = (unsigned char)((position >> 24) & 0xFF);
+    data[4] = status_flags;
+    data[5] = motor_sel;
+    data[6] = motion_phase;
+
+    data[7] = 0;
+    for (i = 0; i < CAN_LENGTH - 1; i++) {
+        data[7] += data[i];
+    }
+
+    Can_SendMessageExt(0x1AA55F43, data, CAN_LENGTH);
+}
+
 /* can usr end */
