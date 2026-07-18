@@ -31,7 +31,6 @@ void elaco_main(void)
 {
     Can_Init();   // CAN 初始化
     Timer_Init(); // 定时器初始化
-
     Tmc5160_Init(); // TMC5160 初始化（含模式配置、基础寄存器、使能驱动）
 
 #ifdef ModTest
@@ -48,8 +47,8 @@ void elaco_main(void)
             Motor_ProcessCmd(can_queuedata);
         }
 
-//        Motor_CheckArrival(); // 轮询电机到位状态并发送反馈
-//        Motor_CheckError();   // 检测电机异常并发送反馈
+        Motor_CheckArrival(); // 轮询电机到位状态并发送反馈
+        // Motor_CheckError();   // 检测电机异常并发送反馈
     }
 }
 
@@ -125,11 +124,13 @@ static void Motor_ExecOne(unsigned char motor,
 }
 
 /****
- * @ 说明: 轮询检查电机是否到位，到位后发送CAN反馈
+ * @ 说明: 轮询检查电机是否到位，到位后验证编码器精度，
+ *        偏差超限则标记异常，最后发送CAN反馈
  ********/
 static void Motor_CheckArrival(void)
 {
     unsigned char motor;
+    unsigned char flags;
     TMC5160_T *chips[2] = { &g_tmc5160_chip1_st,
                             &g_tmc5160_chip2_st };
 
@@ -141,9 +142,17 @@ static void Motor_CheckArrival(void)
         if (1 == (Tmc5160_GetRampStat(chip) & (1 << 9)))
         {
             chip->move_pending = 0;
+
+            flags = Tmc5160_GetStatusFlags(chip);
+
+            /* 到位后验证编码器偏差 */
+            if (0 != Tmc5160_CheckPosition(chip, 0)) {
+                flags |= 0x02;  /* 标记偏差异常(bit1) */
+            }
+
             Can_SendFeedback(chip->chip_number,
                              Tmc5160_GetPosition(chip),
-                             Tmc5160_GetStatusFlags(chip),
+                             flags,
                              Tmc5160_GetMotionPhase(chip));
         }
     }

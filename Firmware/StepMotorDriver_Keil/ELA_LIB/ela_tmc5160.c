@@ -236,16 +236,44 @@ void Tmc5160_Init(void) {
         } else {
             CHIP2_DRV_ENN_RESET;
         }
-
         /* 清除 Power-on 残留错误标志 */
+				// 清除复位，驱动错误，电荷泵异常问题
         Tmc5160_WriteReg(chip, TMC5160_GSTAT, 0x07);
 
         /* 基础配置 */
+				//开机设置为静音模式
         Tmc5160_WriteReg(chip, TMC5160_GCONF, 0x00000004);
-        Tmc5160_WriteReg(chip, TMC5160_CHOPCONF, 0x000100C3);
+        /* CHOPCONF 推荐值:
+         * TOFF=5(稳定), TBL=%01(24时钟),
+         * HSTRT=4, HEND=0, MRES=0(256微步) */
+				// 000 10 0 00 0 0011 100 0101
+        Tmc5160_WriteReg(chip, TMC5160_CHOPCONF, 0x000101C5);
 
-        /* 电机电流：IHOLD=125, IRUN=30, IHOLDDELAY=5 */
-        Tmc5160_WriteReg(chip, TMC5160_IHOLD_IRUN, 0x051E7D);
+        /* 编码器配置 */
+        Tmc5160_ConfigEncoder(chip);
+
+        /* 电机电流配置
+         * IHOLD_IRUN 寄存器 (0x10) 布局:
+         *   Bits [4:0]   = IHOLD     (5位, 0~31)  保持电流
+         *   Bits [12:8]  = IRUN      (5位, 0~31)  运行电流
+         *   Bits [19:16] = IHOLDDELAY (4位, 0~15) 保持延迟
+         *
+         * 电流计算公式 (TMC5160 数据手册):
+         *   I_run = (IRUN / 31) × (0.325V / (32 × RS))
+         *
+         *  RS=0.05R
+         *   I_full = 0.325V / (32 × 0.05Ω) ≈ 203mA
+         *
+         * 电机 57CME13 MS31 额定电流 = 1.0A
+         * 需要 IRUN ≈ 24 (77%) 才能达到额定电流
+         *
+         * 设置值: IHOLD=6, IRUN=16, IHOLDDELAY=6
+         *   保持电流 = 6/31 × 203mA ≈ 35mA (省电降温)
+         *   运行电流 = 16/31 × 203mA ≈ 104.7mA
+         *   延迟时间 ≈ 6 × 16 × tclk ≈ 500ms
+         */
+        Tmc5160_WriteReg(chip, TMC5160_IHOLD_IRUN,
+                         (6 << 16) | (16 << 8) | 6);
     }
 }
 
@@ -436,3 +464,187 @@ unsigned char Tmc5160_GetMotionPhase(TMC5160_T *chip)
 }
 
 /* tmc5160 usr end */
+//----------------------------------------------------------------------------------
+/* tmc5160 enc start */
+
+/****
+ * @ 输入: chip:TMC5160_T结构体指针
+ * @ 输出: void
+ * @ 说明: 配置编码器接口
+ *        ENCMODE=0x00000000: 基本编码器读取(和测试代码一致)
+ *        ENC_CONST=0x000CCCCD: 4000PPR编码器常数
+ *        ENC_DEVIATION=256: 偏差报警阈值(0.5°)
+ ********/
+void Tmc5160_ConfigEncoder(TMC5160_T *chip)
+{
+    /* ENCMODE: 基本编码器读取 */
+    Tmc5160_WriteReg(chip, TMC5160_ENCMODE, 0x00000000);
+    /* ENC_CONST: 4000PPR, 1.8°电机, 256微步
+     * (51200/4000) × 65536 ≈ 838861 = 0x000CCCCD */
+		// 设置一圈的编码器值（硬件规定）
+    Tmc5160_WriteReg(chip, TMC5160_ENC_CONST, 0x000CCCCD);
+    /* ENC_DEVIATION: 偏差阈值 */
+    Tmc5160_WriteReg(chip, TMC5160_ENC_DEVIATION,
+                     TMC5160_ENC_TOLERANCE);
+}
+
+/****
+ * @ 输入: chip:TMC5160_T结构体指针
+ * @ 输出: int:编码器当前位置(X_ENC)
+ * @ 说明: 读取编码器位置寄存器X_ENC(0x39)
+ ********/
+int Tmc5160_GetEncoderPosition(TMC5160_T *chip)
+{
+    return (int)Tmc5160_ReadReg(chip, TMC5160_X_ENC);
+}
+
+/****
+ * @ 输入: chip:TMC5160_T结构体指针
+ * @ 输出: unsigned int:ENC_STATUS寄存器值
+ * @ 说明: 读取编码器状态寄存器ENC_STATUS(0x3B)
+ *        bit0=n_event, bit1=deviation_warn
+ ********/
+unsigned int Tmc5160_GetEncoderStatus(TMC5160_T *chip)
+{
+    return Tmc5160_ReadReg(chip, TMC5160_ENC_STATUS);
+}
+
+/****
+ * @ 输入: chip:TMC5160_T结构体指针
+ * @ 输出: int:编码器偏差值(绝对值)
+ * @ 说明: 计算编码器位置与期望运动量的偏差
+ ********/
+int Tmc5160_GetEncoderDeviation(TMC5160_T *chip)
+{
+    int enc_pos = Tmc5160_GetEncoderPosition(chip);
+    int x_actual = Tmc5160_GetPosition(chip);
+
+    /* 返回编码器与芯片内部位置的差值(绝对值) */
+    int diff = enc_pos - x_actual;
+    if (diff < 0) diff = -diff;
+    return diff;
+}
+
+/****
+ * @ 输入: chip:TMC5160_T结构体指针
+ *        expected_steps:期望运动步数
+ * @ 输出: 0=在容差内, 1=超出容差
+ * @ 说明: 验证编码器实际运动量是否符合预期
+ ********/
+unsigned char Tmc5160_CheckPosition(TMC5160_T *chip,
+                                     int expected_steps)
+{
+    int enc_before, enc_after;
+    int actual_delta, error;
+
+    enc_before = Tmc5160_GetEncoderPosition(chip);
+    /* 等待编码器稳定 */
+    HAL_Delay(10);
+    enc_after = Tmc5160_GetEncoderPosition(chip);
+
+    actual_delta = enc_after - enc_before;
+    error = actual_delta - expected_steps;
+    if (error < 0) error = -error;
+
+    if (error <= TMC5160_ENC_TOLERANCE) {
+        return 0;  /* 在容差内 */
+    }
+    return 1;  /* 超出容差 */
+}
+
+/* tmc5160 enc end */
+//----------------------------------------------------------------------------------
+/* tmc5160 verify start */
+
+/****
+ * @ 输入: chip:TMC5160_T结构体指针
+ *        timeout_ms:超时时间(毫秒)
+ * @ 输出: TMC5160_MoveResult_T:运动结果
+ * @ 说明: 等待芯片完成定位,检测RAMP_STAT.bit9
+ ********/
+TMC5160_MoveResult_T Tmc5160_WaitPosition(
+    TMC5160_T *chip, unsigned int timeout_ms)
+{
+    unsigned int elapsed = 0;
+    unsigned int ramp_stat;
+
+    while (elapsed < timeout_ms) {
+        ramp_stat = Tmc5160_GetRampStat(chip);
+
+        /* SPI通信异常检测 */
+        if (0xFFFFFFFF == ramp_stat || 0 == ramp_stat) {
+            return MOVE_SPI_ERROR;
+        }
+
+        /* 到位检测: RAMP_STAT bit9 = position_reached */
+        if (ramp_stat & (1 << 9)) {
+            return MOVE_OK;
+        }
+
+        HAL_Delay(5);
+        elapsed += 5;
+    }
+
+    return MOVE_TIMEOUT;
+}
+
+/****
+ * @ 输入: chip:TMC5160_T结构体指针
+ *        target:目标绝对位置
+ * @ 输出: TMC5160_MoveResult_T:运动结果
+ * @ 说明: 执行位置运动并验证编码器精度
+ *        偏差超限时自动重试
+ ********/
+TMC5160_MoveResult_T Tmc5160_MoveToWithVerify(
+    TMC5160_T *chip, int target)
+{
+    TMC5160_MoveResult_T result;
+    int current_pos;
+    int move_delta;
+    int enc_before, enc_after;
+    int deviation;
+    unsigned char retry;
+
+    current_pos = Tmc5160_GetPosition(chip);
+    move_delta = target - current_pos;
+
+    for (retry = 0; retry < TMC5160_MAX_RETRY; retry++) {
+        /* 清除残留错误 */
+        Tmc5160_WriteReg(chip, TMC5160_GSTAT, 0x07);
+
+        /* 记录编码器起始位置 */
+        enc_before = Tmc5160_GetEncoderPosition(chip);
+
+        /* 执行运动 */
+        Tmc5160_MoveTo(chip, target);
+
+        /* 等待到位 */
+        result = Tmc5160_WaitPosition(
+            chip, TMC5160_MOVE_TIMEOUT_MS);
+        if (MOVE_OK != result) {
+            return result;
+        }
+
+        /* 稳定后读取编码器 */
+        HAL_Delay(10);
+        enc_after = Tmc5160_GetEncoderPosition(chip);
+
+        /* 验证偏差 */
+        deviation = (enc_after - enc_before) - move_delta;
+        if (deviation < 0) deviation = -deviation;
+
+        if (deviation <= TMC5160_ENC_TOLERANCE) {
+            return MOVE_OK;  /* 精度合格 */
+        }
+
+        /* 偏差超限,以编码器为基准修正目标 */
+        current_pos = Tmc5160_GetEncoderPosition(chip);
+        target = current_pos + move_delta;
+
+        HAL_Delay(50);
+    }
+
+    return MOVE_DEVIATION;  /* 重试耗尽 */
+}
+
+/* tmc5160 verify end */

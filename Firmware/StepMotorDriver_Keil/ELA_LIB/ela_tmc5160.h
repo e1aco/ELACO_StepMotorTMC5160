@@ -183,7 +183,19 @@ typedef struct {
 #define TMC5160_PROFILE_COUNT  4 // 4组运动参数
 /* -5- 结束 */
 
-/* -6- 函数原型 */
+/* -6- 编码器验证结果 */
+#define TMC5160_ENC_TOLERANCE      256  /* 偏差容差: 256步≈0.5° */
+#define TMC5160_MOVE_TIMEOUT_MS    5000 /* 运动超时(ms) */
+#define TMC5160_MAX_RETRY          3    /* 最大重试次数 */
+
+typedef enum {
+    MOVE_OK = 0,
+    MOVE_TIMEOUT,
+    MOVE_DEVIATION,
+    MOVE_SPI_ERROR
+} TMC5160_MoveResult_T;
+
+/* -7- 函数原型 */
 unsigned char Tmc5160_Mode(TMC5160_T *CHIP_T);
 void         Tmc5160_Init(void);
 unsigned char Tmc5160_WriteReg(TMC5160_T *CHIP_T,
@@ -203,6 +215,20 @@ unsigned int Tmc5160_GetRampStat(TMC5160_T *chip);
 unsigned int Tmc5160_GetDrvStatus(TMC5160_T *chip);
 unsigned char Tmc5160_GetStatusFlags(TMC5160_T *chip);
 unsigned char Tmc5160_GetMotionPhase(TMC5160_T *chip);
-/* -6- 结束 */
+
+/* 编码器相关 */
+void         Tmc5160_ConfigEncoder(TMC5160_T *chip);
+int          Tmc5160_GetEncoderPosition(TMC5160_T *chip);
+unsigned int Tmc5160_GetEncoderStatus(TMC5160_T *chip);
+int          Tmc5160_GetEncoderDeviation(TMC5160_T *chip);
+unsigned char Tmc5160_CheckPosition(TMC5160_T *chip,
+                                     int expected_steps);
+
+/* 带验证的运动控制 */
+TMC5160_MoveResult_T Tmc5160_WaitPosition(
+    TMC5160_T *chip, unsigned int timeout_ms);
+TMC5160_MoveResult_T Tmc5160_MoveToWithVerify(
+    TMC5160_T *chip, int target);
+/* -7- 结束 */
 
 #endif

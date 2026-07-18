@@ -188,7 +188,8 @@ static unsigned char Encoder_TestChip(TMC5160_T *CHIP_T)
 
     /* === 第一步: 基础与斩波器配置 === */
     Tmc5160_WriteReg(CHIP_T, TMC5160_GCONF, 0x00000004);
-    Tmc5160_WriteReg(CHIP_T, TMC5160_CHOPCONF, 0x000100C3);
+    /* CHOPCONF: TOFF=5, TBL=%01, HSTRT=4, HEND=0, MRES=0 */
+    Tmc5160_WriteReg(CHIP_T, TMC5160_CHOPCONF, 0x000101C5);
     Tmc5160_WriteReg(CHIP_T, TMC5160_IHOLD_IRUN,
                      (ENC_IHOLDDELAY << 16) |
                      (ENC_IRUN << 8)       |
