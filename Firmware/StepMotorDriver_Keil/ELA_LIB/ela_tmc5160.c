@@ -434,12 +434,12 @@ unsigned int Tmc5160_GetDrvStatus(TMC5160_T *chip)
  * @ 输入: chip:TMC5160_T结构体指针
  * @ 输出: unsigned char:状态标志位
  * @ 说明: 读取电机状态并组装为协议定义的标志位
- *        bit0=到位, bit1=堵转, bit2=过温,
+ *        bit0=到位, bit1=失步, bit2=过温,
  *        bit3=驱动错误, bit4=SPI通讯异常
  ********/
 unsigned char Tmc5160_GetStatusFlags(TMC5160_T *chip)
 {
-    unsigned int ramp_stat, drv_status, gstat;
+    unsigned int ramp_stat, drv_status, gstat, enc_stat;
     unsigned char flags = 0;
 
     ramp_stat = Tmc5160_ReadReg(chip,
@@ -448,6 +448,8 @@ unsigned char Tmc5160_GetStatusFlags(TMC5160_T *chip)
                                  TMC5160_DRVSTATUS);
     gstat = Tmc5160_ReadReg(chip,
                             TMC5160_GSTAT);
+    enc_stat = Tmc5160_ReadReg(chip,
+                               TMC5160_ENC_STATUS);
 
     /* SPI通讯异常检测: 任一寄存器返回全F说明SPI通讯失败 */
     if (0xFFFFFFFF == ramp_stat ||
@@ -463,8 +465,8 @@ unsigned char Tmc5160_GetStatusFlags(TMC5160_T *chip)
     {
         flags |= 0x01;
     }
-    /* bit1: 堵转/失步 - RAMP_STAT.bit13 = status_sg (StallGuard2) */
-    if (ramp_stat & (1 << 13))
+    /* bit1: 失步 - ENC_STATUS.bit1 = deviation_warn (编码器偏差) */
+    if (enc_stat & (1 << 1))
     {
         flags |= 0x02;
     }

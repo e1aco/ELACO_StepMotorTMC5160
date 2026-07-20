@@ -238,7 +238,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     }
     if (htim->Instance == TIM7) // PID控制 10Khz
     {
-        motor_pid_proc();
+        // motor_pid_proc();
     }
 }
 
