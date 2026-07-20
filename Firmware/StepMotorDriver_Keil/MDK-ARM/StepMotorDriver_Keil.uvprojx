@@ -645,6 +645,11 @@
               <FileType>1</FileType>
               <FilePath>..\ELA_LIB\ela_eeprom.c</FilePath>
             </File>
+            <File>
+              <FileName>ela_motor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\ELA_LIB\ela_motor.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -9,6 +9,7 @@
 void Timer_Init(void)
 {
     HAL_TIM_Base_Start_IT(&htim5); // 启动定时器5并使能中断
+    HAL_TIM_Base_Start_IT(&htim7); // 启动定时器7并使能中断
 
     __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 3);
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);

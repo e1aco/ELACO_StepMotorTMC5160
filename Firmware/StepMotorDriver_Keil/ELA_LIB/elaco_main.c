@@ -46,7 +46,6 @@ void elaco_main(void)
         {
             Motor_ProcessCmd(can_queuedata);
         }
-
         Motor_CheckArrival(); // 轮询电机到位状态并发送反馈
         // Motor_CheckError();   // 检测电机异常并发送反馈
     }
@@ -236,6 +235,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_IWDG_Refresh(&hiwdg); // 喂狗，防止 IWDG 超时复位
         g_err_chk_flag = 1;       // 触发异常检测
         // HAL_GPIO_TogglePin(MCU_LED_GPIO_Port, MCU_LED_Pin);
+    }
+    if (htim->Instance == TIM7) // PID控制 10Khz
+    {
+        motor_pid_proc();
     }
 }
 

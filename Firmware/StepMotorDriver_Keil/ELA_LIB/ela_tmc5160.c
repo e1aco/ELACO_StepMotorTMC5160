@@ -24,43 +24,48 @@ TMC5160_T g_tmc5160_chip2_st; // 定义TMC5160芯片2的实例
  *    2         1         1      S斜坡运动步进+方向控制
  *    3         1         0        简单步进+方向控制
  ********/
-unsigned char Tmc5160_Mode(TMC5160_T* CHIP_T){
-    if (CHIP_T->chip_number == 1) {
-        switch (CHIP_T->mode) {
-            case 1://01
-                CHIP1_SD_RESET;
-                CHIP1_SPI_SET;
-                break;
-            case 2://11
-                CHIP1_SD_SET;
-                CHIP1_SPI_SET;
-                break;
-            case 3://10
-                CHIP1_SD_SET;
-                CHIP1_SPI_RESET;
-                break;
-            default:
-                // Handle invalid mode
-                return FALSE;
+unsigned char Tmc5160_Mode(TMC5160_T *CHIP_T)
+{
+    if (CHIP_T->chip_number == 1)
+    {
+        switch (CHIP_T->mode)
+        {
+        case 1: // 01
+            CHIP1_SD_RESET;
+            CHIP1_SPI_SET;
+            break;
+        case 2: // 11
+            CHIP1_SD_SET;
+            CHIP1_SPI_SET;
+            break;
+        case 3: // 10
+            CHIP1_SD_SET;
+            CHIP1_SPI_RESET;
+            break;
+        default:
+            // Handle invalid mode
+            return FALSE;
         }
     }
-    else if (CHIP_T->chip_number == 2) {
-        switch (CHIP_T->mode) {
-            case 1://01
-                CHIP2_SD_RESET;
-                CHIP2_SPI_SET;
-                break;
-            case 2://11
-                CHIP2_SD_SET;
-                CHIP2_SPI_SET;
-                break;
-            case 3://10
-                CHIP2_SD_SET;
-                CHIP2_SPI_RESET;
-                break;
-            default:
-                // Handle invalid mode
-                return FALSE;
+    else if (CHIP_T->chip_number == 2)
+    {
+        switch (CHIP_T->mode)
+        {
+        case 1: // 01
+            CHIP2_SD_RESET;
+            CHIP2_SPI_SET;
+            break;
+        case 2: // 11
+            CHIP2_SD_SET;
+            CHIP2_SPI_SET;
+            break;
+        case 3: // 10
+            CHIP2_SD_SET;
+            CHIP2_SPI_RESET;
+            break;
+        default:
+            // Handle invalid mode
+            return FALSE;
         }
     }
     return TRUE;
@@ -87,8 +92,9 @@ unsigned char Tmc5160_Mode(TMC5160_T* CHIP_T){
  *        避免SPI OVR标志置位影响后续读操作
  ********/
 unsigned char Tmc5160_WriteReg(TMC5160_T *CHIP_T,
-                                unsigned char reg_addr,
-                                unsigned int data) {
+                               unsigned char reg_addr,
+                               unsigned int data)
+{
     unsigned char tx_buf[5];
     unsigned char rx_buf[5];
     unsigned char status;
@@ -101,24 +107,28 @@ unsigned char Tmc5160_WriteReg(TMC5160_T *CHIP_T,
     tx_buf[4] = data & 0xFF;
 
     /* 根据芯片号选择对应的片选引脚 */
-    if (CHIP_T->chip_number == 1) {
+    if (CHIP_T->chip_number == 1)
+    {
         CHIP1_CS_RESET;
         status = HAL_SPI_TransmitReceive(&hspi3,
-                    tx_buf, rx_buf, 5, HAL_MAX_DELAY);
+                                         tx_buf, rx_buf, 5, HAL_MAX_DELAY);
         CHIP1_CS_SET;
     }
-    else if (CHIP_T->chip_number == 2) {
+    else if (CHIP_T->chip_number == 2)
+    {
         CHIP2_CS_RESET;
         status = HAL_SPI_TransmitReceive(&hspi3,
-                    tx_buf, rx_buf, 5, HAL_MAX_DELAY);
+                                         tx_buf, rx_buf, 5, HAL_MAX_DELAY);
         CHIP2_CS_SET;
     }
-    else {
-        return FALSE;                  // 芯片号错误
+    else
+    {
+        return FALSE; // 芯片号错误
     }
 
-    if (HAL_OK != status) {
-        return FALSE;                  // SPI传输失败
+    if (HAL_OK != status)
+    {
+        return FALSE; // SPI传输失败
     }
 
     return TRUE;
@@ -141,7 +151,8 @@ unsigned char Tmc5160_WriteReg(TMC5160_T *CHIP_T,
  *        SPI数据报; 每报之间的CS高电平时间需≥t_CHH
  ********/
 unsigned int Tmc5160_ReadReg(TMC5160_T *CHIP_T,
-                              unsigned char reg_addr) {
+                             unsigned char reg_addr)
+{
     unsigned char tx_buf[5];
     unsigned char rx_buf[5];
     unsigned int reg_value;
@@ -155,13 +166,15 @@ unsigned int Tmc5160_ReadReg(TMC5160_T *CHIP_T,
     tx_buf[4] = 0x00;
 
     /* 根据芯片号选择对应的片选引脚 */
-    if (CHIP_T->chip_number == 1) {
+    if (CHIP_T->chip_number == 1)
+    {
         /* 第一报: 发送读命令, 接收的是上一次通信的数据(丢弃) */
         CHIP1_CS_RESET;
         status = HAL_SPI_TransmitReceive(&hspi3,
-                    tx_buf, rx_buf, 5, HAL_MAX_DELAY);
+                                         tx_buf, rx_buf, 5, HAL_MAX_DELAY);
         CHIP1_CS_SET;
-        if (HAL_OK != status) {
+        if (HAL_OK != status)
+        {
             return 0xFFFFFFFF;
         }
         /* CS高电平间隙(满足t_CHH最小时间) */
@@ -169,19 +182,22 @@ unsigned int Tmc5160_ReadReg(TMC5160_T *CHIP_T,
         /* 第二报: 再次发送读命令, 接收本次请求的寄存器数据 */
         CHIP1_CS_RESET;
         status = HAL_SPI_TransmitReceive(&hspi3,
-                    tx_buf, rx_buf, 5, HAL_MAX_DELAY);
+                                         tx_buf, rx_buf, 5, HAL_MAX_DELAY);
         CHIP1_CS_SET;
-        if (HAL_OK != status) {
+        if (HAL_OK != status)
+        {
             return 0xFFFFFFFF;
         }
     }
-    else if (CHIP_T->chip_number == 2) {
+    else if (CHIP_T->chip_number == 2)
+    {
         /* 第一报: 发送读命令, 接收的是上一次通信的数据(丢弃) */
         CHIP2_CS_RESET;
         status = HAL_SPI_TransmitReceive(&hspi3,
-                    tx_buf, rx_buf, 5, HAL_MAX_DELAY);
+                                         tx_buf, rx_buf, 5, HAL_MAX_DELAY);
         CHIP2_CS_SET;
-        if (HAL_OK != status) {
+        if (HAL_OK != status)
+        {
             return 0xFFFFFFFF;
         }
         /* CS高电平间隙(满足t_CHH最小时间) */
@@ -189,21 +205,23 @@ unsigned int Tmc5160_ReadReg(TMC5160_T *CHIP_T,
         /* 第二报: 再次发送读命令, 接收本次请求的寄存器数据 */
         CHIP2_CS_RESET;
         status = HAL_SPI_TransmitReceive(&hspi3,
-                    tx_buf, rx_buf, 5, HAL_MAX_DELAY);
+                                         tx_buf, rx_buf, 5, HAL_MAX_DELAY);
         CHIP2_CS_SET;
-        if (HAL_OK != status) {
+        if (HAL_OK != status)
+        {
             return 0xFFFFFFFF;
         }
     }
-    else {
-        return 0xFFFFFFFF;             // 芯片号错误
+    else
+    {
+        return 0xFFFFFFFF; // 芯片号错误
     }
 
     /* 解析返回数据:
        rx_buf[0]为状态字节，rx_buf[1]~rx_buf[4]为寄存器数据 */
     reg_value = ((unsigned int)rx_buf[1] << 24) |
                 ((unsigned int)rx_buf[2] << 16) |
-                ((unsigned int)rx_buf[3] << 8)  |
+                ((unsigned int)rx_buf[3] << 8) |
                 (unsigned int)rx_buf[4];
 
     return reg_value;
@@ -217,12 +235,14 @@ unsigned int Tmc5160_ReadReg(TMC5160_T *CHIP_T,
  * @ 说明: 初始化TMC5160芯片结构体，
  *        设置芯片号和模式,配置基础寄存器,使能电机驱动
  ********/
-void Tmc5160_Init(void) {
+void Tmc5160_Init(void)
+{
     unsigned char i;
-    TMC5160_T *chips[2] = { &g_tmc5160_chip1_st,
-                            &g_tmc5160_chip2_st };
+    TMC5160_T *chips[2] = {&g_tmc5160_chip1_st,
+                           &g_tmc5160_chip2_st};
 
-    for (i = 0; i < 2; i++) {
+    for (i = 0; i < 2; i++)
+    {
         TMC5160_T *chip = chips[i];
         chip->chip_number = i + 1;
         chip->mode = 1;
@@ -231,22 +251,25 @@ void Tmc5160_Init(void) {
         Tmc5160_Mode(chip); // 设置 SD_MODE/SPI_MODE 引脚
 
         /* 使能电机驱动 */
-        if (i == 0) {
+        if (i == 0)
+        {
             CHIP1_DRV_ENN_RESET;
-        } else {
+        }
+        else
+        {
             CHIP2_DRV_ENN_RESET;
         }
         /* 清除 Power-on 残留错误标志 */
-				// 清除复位，驱动错误，电荷泵异常问题
+        // 清除复位，驱动错误，电荷泵异常问题
         Tmc5160_WriteReg(chip, TMC5160_GSTAT, 0x07);
 
         /* 基础配置 */
-				//开机设置为静音模式
+        // 开机设置为静音模式
         Tmc5160_WriteReg(chip, TMC5160_GCONF, 0x00000004);
         /* CHOPCONF 推荐值:
          * TOFF=5(稳定), TBL=%01(24时钟),
          * HSTRT=4, HEND=0, MRES=0(256微步) */
-				// 000 10 0 00 0 0011 100 0101
+        // 000 10 0 00 0 0011 100 0101
         Tmc5160_WriteReg(chip, TMC5160_CHOPCONF, 0x000101C5);
 
         /* 编码器配置 */
@@ -280,10 +303,10 @@ void Tmc5160_Init(void) {
 /* 运动参数组定义 */
 static const TMC5160_MotionProfile_T
     g_tmc5160_profiles_st[TMC5160_PROFILE_COUNT] = {
-    { 0, 10, 0, 0,   1000,   5000,   1000,  1000, 10 },
-    { 0, 10, 0, 0,   5000,  20000,   5000,  5000, 10 },
-    { 0, 10, 0, 0,  10000,  50000,  10000, 10000, 10 },
-    { 0, 10, 0, 0,  20000, 100000,  20000, 20000, 10 },
+        {0, 10, 0, 0, 1000, 5000, 1000, 1000, 10},
+        {0, 10, 0, 0, 5000, 20000, 5000, 5000, 10},
+        {0, 10, 0, 0, 10000, 50000, 10000, 10000, 10},
+        {0, 10, 0, 0, 20000, 100000, 20000, 20000, 10},
 };
 
 /****
@@ -293,25 +316,26 @@ static const TMC5160_MotionProfile_T
  * @ 说明: 按预配置的运动参数组设置TMC5160的斜坡寄存器
  ********/
 void Tmc5160_ApplyProfile(TMC5160_T *chip,
-                           unsigned char profile_id)
+                          unsigned char profile_id)
 {
     const TMC5160_MotionProfile_T *p;
 
     if (0 == profile_id ||
-        TMC5160_PROFILE_COUNT < profile_id) {
+        TMC5160_PROFILE_COUNT < profile_id)
+    {
         profile_id = 1;
     }
     p = &g_tmc5160_profiles_st[profile_id - 1];
 
     Tmc5160_WriteReg(chip, TMC5160_VSTART, p->vstart);
-    Tmc5160_WriteReg(chip, TMC5160_VSTOP,  p->vstop);
-    Tmc5160_WriteReg(chip, TMC5160_V1,     p->v1);
-    Tmc5160_WriteReg(chip, TMC5160_A1,     p->a1);
+    Tmc5160_WriteReg(chip, TMC5160_VSTOP, p->vstop);
+    Tmc5160_WriteReg(chip, TMC5160_V1, p->v1);
+    Tmc5160_WriteReg(chip, TMC5160_A1, p->a1);
 
-    Tmc5160_WriteReg(chip, TMC5160_AMAX,   p->amax);
-    Tmc5160_WriteReg(chip, TMC5160_VMAX,   p->vmax);
-    Tmc5160_WriteReg(chip, TMC5160_DMAX,   p->dmax);
-    Tmc5160_WriteReg(chip, TMC5160_D1,     p->d1);
+    Tmc5160_WriteReg(chip, TMC5160_AMAX, p->amax);
+    Tmc5160_WriteReg(chip, TMC5160_VMAX, p->vmax);
+    Tmc5160_WriteReg(chip, TMC5160_DMAX, p->dmax);
+    Tmc5160_WriteReg(chip, TMC5160_D1, p->d1);
 
     Tmc5160_WriteReg(chip, TMC5160_TZEROWAIT,
                      p->tzerowait);
@@ -351,11 +375,14 @@ void Tmc5160_MoveBy(TMC5160_T *chip, int offset)
  ********/
 void Tmc5160_SetVelocity(TMC5160_T *chip, int velocity)
 {
-    if (0 <= velocity) {
+    if (0 <= velocity)
+    {
         Tmc5160_WriteReg(chip, TMC5160_RAMPMODE, 1);
         Tmc5160_WriteReg(chip, TMC5160_VMAX,
                          (unsigned int)velocity);
-    } else {
+    }
+    else
+    {
         Tmc5160_WriteReg(chip, TMC5160_RAMPMODE, 2);
         Tmc5160_WriteReg(chip, TMC5160_VMAX,
                          (unsigned int)(-velocity));
@@ -415,25 +442,42 @@ unsigned char Tmc5160_GetStatusFlags(TMC5160_T *chip)
     unsigned int ramp_stat, drv_status, gstat;
     unsigned char flags = 0;
 
-    ramp_stat  = Tmc5160_ReadReg(chip,
-                                  TMC5160_RAMP_STAT);
+    ramp_stat = Tmc5160_ReadReg(chip,
+                                TMC5160_RAMP_STAT);
     drv_status = Tmc5160_ReadReg(chip,
-                                  TMC5160_DRVSTATUS);
-    gstat      = Tmc5160_ReadReg(chip,
-                                  TMC5160_GSTAT);
+                                 TMC5160_DRVSTATUS);
+    gstat = Tmc5160_ReadReg(chip,
+                            TMC5160_GSTAT);
 
-    /* SPI通讯异常检测 */
+    /* SPI通讯异常检测: 任一寄存器返回全F说明SPI通讯失败 */
     if (0xFFFFFFFF == ramp_stat ||
         0xFFFFFFFF == drv_status ||
-        0xFFFFFFFF == gstat) {
+        0xFFFFFFFF == gstat)
+    {
         flags |= 0x10; // bit4 = SPI通讯异常
         return flags;  // 寄存器数据无效，不解析其他位
     }
 
-    if (ramp_stat & (1 << 9))  { flags |= 0x01; }
-    if (gstat & 0x02)          { flags |= 0x02; }
-    if (drv_status & (3 << 30)){ flags |= 0x04; }
-    if (gstat & 0x04)          { flags |= 0x08; }
+    /* bit0: 到位 - RAMP_STAT.bit9 = position_reached */
+    if (ramp_stat & (1 << 9))
+    {
+        flags |= 0x01;
+    }
+    /* bit1: 堵转/失步 - RAMP_STAT.bit13 = status_sg (StallGuard2) */
+    if (ramp_stat & (1 << 13))
+    {
+        flags |= 0x02;
+    }
+    /* bit2: 过温 - DRV_STATUS.bit31=ot + bit30=otpw */
+    if (drv_status & (3 << 30))
+    {
+        flags |= 0x04;
+    }
+    /* bit3: 驱动错误 - GSTAT.bit1 = drv_err */
+    if (gstat & 0x02)
+    {
+        flags |= 0x08;
+    }
 
     return flags;
 }
@@ -452,13 +496,28 @@ unsigned char Tmc5160_GetMotionPhase(TMC5160_T *chip)
     unsigned char phase = 0;
 
     ramp_stat = Tmc5160_ReadReg(chip,
-                                 TMC5160_RAMP_STAT);
+                                TMC5160_RAMP_STAT);
 
-    if (ramp_stat & (1 << 5))  { phase |= 0x01; }
-    if (ramp_stat & (1 << 6))  { phase |= 0x02; }
-    if (ramp_stat & (1 << 7))  { phase |= 0x04; }
-    if (ramp_stat & (1 << 10)) { phase |= 0x08; }
-    if (ramp_stat & (1 << 0))  { phase |= 0x10; }
+    if (ramp_stat & (1 << 5))
+    {
+        phase |= 0x01;
+    }
+    if (ramp_stat & (1 << 6))
+    {
+        phase |= 0x02;
+    }
+    if (ramp_stat & (1 << 7))
+    {
+        phase |= 0x04;
+    }
+    if (ramp_stat & (1 << 10))
+    {
+        phase |= 0x08;
+    }
+    if (ramp_stat & (1 << 0))
+    {
+        phase |= 0x10;
+    }
 
     return phase;
 }
@@ -481,7 +540,7 @@ void Tmc5160_ConfigEncoder(TMC5160_T *chip)
     Tmc5160_WriteReg(chip, TMC5160_ENCMODE, 0x00000000);
     /* ENC_CONST: 4000PPR, 1.8°电机, 256微步
      * (51200/4000) × 65536 ≈ 838861 = 0x000CCCCD */
-		// 设置一圈的编码器值（硬件规定）
+    // 设置一圈的编码器值（硬件规定）
     Tmc5160_WriteReg(chip, TMC5160_ENC_CONST, 0x000CCCCD);
     /* ENC_DEVIATION: 偏差阈值 */
     Tmc5160_WriteReg(chip, TMC5160_ENC_DEVIATION,
@@ -521,7 +580,8 @@ int Tmc5160_GetEncoderDeviation(TMC5160_T *chip)
 
     /* 返回编码器与芯片内部位置的差值(绝对值) */
     int diff = enc_pos - x_actual;
-    if (diff < 0) diff = -diff;
+    if (diff < 0)
+        diff = -diff;
     return diff;
 }
 
@@ -532,7 +592,7 @@ int Tmc5160_GetEncoderDeviation(TMC5160_T *chip)
  * @ 说明: 验证编码器实际运动量是否符合预期
  ********/
 unsigned char Tmc5160_CheckPosition(TMC5160_T *chip,
-                                     int expected_steps)
+                                    int expected_steps)
 {
     int enc_before, enc_after;
     int actual_delta, error;
@@ -544,12 +604,14 @@ unsigned char Tmc5160_CheckPosition(TMC5160_T *chip,
 
     actual_delta = enc_after - enc_before;
     error = actual_delta - expected_steps;
-    if (error < 0) error = -error;
+    if (error < 0)
+        error = -error;
 
-    if (error <= TMC5160_ENC_TOLERANCE) {
-        return 0;  /* 在容差内 */
+    if (error <= TMC5160_ENC_TOLERANCE)
+    {
+        return 0; /* 在容差内 */
     }
-    return 1;  /* 超出容差 */
+    return 1; /* 超出容差 */
 }
 
 /* tmc5160 enc end */
@@ -568,16 +630,19 @@ TMC5160_MoveResult_T Tmc5160_WaitPosition(
     unsigned int elapsed = 0;
     unsigned int ramp_stat;
 
-    while (elapsed < timeout_ms) {
+    while (elapsed < timeout_ms)
+    {
         ramp_stat = Tmc5160_GetRampStat(chip);
 
         /* SPI通信异常检测 */
-        if (0xFFFFFFFF == ramp_stat || 0 == ramp_stat) {
+        if (0xFFFFFFFF == ramp_stat || 0 == ramp_stat)
+        {
             return MOVE_SPI_ERROR;
         }
 
         /* 到位检测: RAMP_STAT bit9 = position_reached */
-        if (ramp_stat & (1 << 9)) {
+        if (ramp_stat & (1 << 9))
+        {
             return MOVE_OK;
         }
 
@@ -608,7 +673,8 @@ TMC5160_MoveResult_T Tmc5160_MoveToWithVerify(
     current_pos = Tmc5160_GetPosition(chip);
     move_delta = target - current_pos;
 
-    for (retry = 0; retry < TMC5160_MAX_RETRY; retry++) {
+    for (retry = 0; retry < TMC5160_MAX_RETRY; retry++)
+    {
         /* 清除残留错误 */
         Tmc5160_WriteReg(chip, TMC5160_GSTAT, 0x07);
 
@@ -621,7 +687,8 @@ TMC5160_MoveResult_T Tmc5160_MoveToWithVerify(
         /* 等待到位 */
         result = Tmc5160_WaitPosition(
             chip, TMC5160_MOVE_TIMEOUT_MS);
-        if (MOVE_OK != result) {
+        if (MOVE_OK != result)
+        {
             return result;
         }
 
@@ -631,10 +698,12 @@ TMC5160_MoveResult_T Tmc5160_MoveToWithVerify(
 
         /* 验证偏差 */
         deviation = (enc_after - enc_before) - move_delta;
-        if (deviation < 0) deviation = -deviation;
+        if (deviation < 0)
+            deviation = -deviation;
 
-        if (deviation <= TMC5160_ENC_TOLERANCE) {
-            return MOVE_OK;  /* 精度合格 */
+        if (deviation <= TMC5160_ENC_TOLERANCE)
+        {
+            return MOVE_OK; /* 精度合格 */
         }
 
         /* 偏差超限,以编码器为基准修正目标 */
@@ -644,7 +713,7 @@ TMC5160_MoveResult_T Tmc5160_MoveToWithVerify(
         HAL_Delay(50);
     }
 
-    return MOVE_DEVIATION;  /* 重试耗尽 */
+    return MOVE_DEVIATION; /* 重试耗尽 */
 }
 
 /* tmc5160 verify end */
