@@ -236,7 +236,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         g_err_chk_flag = 1;       // 触发异常检测
         // HAL_GPIO_TogglePin(MCU_LED_GPIO_Port, MCU_LED_Pin);
     }
-    if (htim->Instance == TIM7) // PID控制 10Khz
+    if (htim->Instance == TIM9) // PID控制 10Khz
     {
         // motor_pid_proc();
     }

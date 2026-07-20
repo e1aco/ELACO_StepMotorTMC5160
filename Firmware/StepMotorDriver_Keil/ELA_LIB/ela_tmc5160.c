@@ -469,9 +469,10 @@ unsigned char Tmc5160_GetStatusFlags(TMC5160_T *chip)
     if (enc_stat & (1 << 1))
     {
         flags |= 0x02;
+        Tmc5160_WriteReg(chip, TMC5160_ENC_STATUS, (1 << 1));
     }
-    /* bit2: 过温 - DRV_STATUS.bit31=ot + bit30=otpw */
-    if (drv_status & (3 << 30))
+    /* bit2: 过温 - DRV_STATUS.bit26=otpw + bit25=ot */
+    if (drv_status & (3 << 25))
     {
         flags |= 0x04;
     }
@@ -479,6 +480,7 @@ unsigned char Tmc5160_GetStatusFlags(TMC5160_T *chip)
     if (gstat & 0x02)
     {
         flags |= 0x08;
+        Tmc5160_WriteReg(chip, TMC5160_GSTAT, (1 << 1));
     }
 
     return flags;

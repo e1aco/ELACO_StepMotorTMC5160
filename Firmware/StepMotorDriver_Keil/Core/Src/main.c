@@ -100,6 +100,7 @@ int main(void)
   MX_TIM5_Init();
   MX_SPI3_Init();
   MX_TIM7_Init();
+  MX_TIM9_Init();
   /* USER CODE BEGIN 2 */
 
   elaco_main(); // 主循环
