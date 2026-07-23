@@ -1,0 +1,87 @@
+# 命令: /em si (存量接入)
+
+## 功能
+分析现有代码，重建项目状态
+
+## 触发
+```
+/em si [路径]
+```
+
+## 参数
+- **路径**（可选）：项目目录路径
+  - 不带路径时：使用当前项目目录（`.`）
+  - 带路径时：使用指定目录
+
+## 执行流程
+
+1. **进入指定目录**
+2. **分析代码结构**
+   - 识别芯片型号（查找 system_xxx.c, startup_xxx.s）
+   - 识别已初始化外设（gpio, usart, i2c, spi, timer等）
+   - 识别驱动层（已驱动的传感器/设备）
+   - 识别应用层（主功能循环）
+   - 识别调试接口（printf重定向，LED指示）
+   - 检查git状态（最后一次提交信息）
+
+3. **【芯片学习】**
+   - 检查 ~/.claude/chips.json 是否存在
+     - 不存在 → 自动创建
+   - 检测芯片型号：正则提取 system_xxx.c / startup_xxx.s
+   - 识别厂商：ST → ST, GD → GigaDevice, CH32/WCH → WCH
+   - 检测外设：搜索 gpio_init, usart_init 等关键词
+   - 添加到 chips.json
+   - 如芯片已存在 → 更新 lastUsed 时间戳
+
+3.5 **【加载项目知识库】**（同 init.md 步骤 4.5）
+   - 扫描 `Require/` 文件夹（存在时执行）
+   - **检测开发文档快捷方式**:
+     - 查找 `Require/*.lnk` 文件
+     - 有 → 解析快捷方式目标，读取目标 `.md` 文件
+     - **无** → 提示:
+       ```
+       ⚠️ Require/ 下未找到 .lnk 快捷方式文件
+          请将项目开发文档的快捷方式放入 Require/ 文件夹（.lnk 格式）。
+          该文件用于 AI 自动留痕（每次验证通过后追加开发进度）。
+       ```
+   - 对 `.pdf` 文件: 调用 `python tools/pdf_reader.py index Require/<文件>.pdf` 生成索引
+   - 生成 `<STATE_DIR>/require-index.md`（≤50 行）
+   - 不存在 `Require/` → 跳过
+
+4. **创建 .em/ 目录结构**（S10-B 通用化：新存量项目统一使用 `.em/`，旧 `.emv2/` 项目保留）
+5. **生成/更新 `<STATE_DIR>/project-spec.md` 和 `<STATE_DIR>/memory-log.md`**
+   - `<STATE_DIR>` 由 `get_state_dir()` 解析
+   - 现有 `.emv2/` 项目 → 继续写到 `.emv2/`（保持兼容）
+   - 新存量项目 → 写到 `.em/`
+6. **更新全局索引:embedded-projects-index.md,一般在.claude里**
+7. **输出审计报告**
+
+## 输出格式
+
+```
+🔍 代码审计完成
+
+识别结果:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📟 芯片型号: [从代码识别]
+✅ 已完成:
+   - [步骤]: [描述]
+
+⚠️ 部分完成:
+   - [步骤]: [描述]
+
+🔄 当前状态推测:
+   - 步骤: [当前步骤]
+   - 问题: [发现的问题]
+   - 上次提交: [git log信息]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+## 相关文件
+- workflows/chip-learning.md - 芯片学习机制
+- commands/req.md - 知识库管理
+- templates/require-index.md - 索引模板
+
+## 文件缺失处理规则
+
+与 `commands/req.md` 一致：**禁止自动访问外部网页**，必须先问用户。

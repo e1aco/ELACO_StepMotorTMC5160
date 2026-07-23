@@ -1,0 +1,15 @@
+{
+  "type": "embedded",
+  "name": "StepMotorDriver_Keil",
+  "created": "2026-07-22",
+  "embedded": {
+    "chip": "STM32F407ZET6",
+    "toolchain": "Keil",
+    "interface": "SWD",
+    "peripherals": ["CAN1", "SPI1", "USART1", "TIM7", "TIM9", "IWDG", "GPIO"],
+    "driver_ic": "TMC5160A",
+    "motor": "57CME13"
+  },
+  "plugins": ["embedded"],
+  "require_dir": "Require"
+}

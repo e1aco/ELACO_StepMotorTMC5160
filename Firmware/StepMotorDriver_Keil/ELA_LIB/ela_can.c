@@ -92,8 +92,8 @@ HAL_StatusTypeDef Can_SendMessageExt(unsigned int id,
 }
 
 /****
- * @ 输入: unsigned char *data: 接收数据缓冲区指针（长度至少CAN_LENGTH字节）
- * @ 输出: unsigned char: 成功返回 TRUE(0)，队列空返回 FALSE(1)
+ * @ 输入: unsigned char *data: 接收数据缓冲区指针（长度至少QUEUE_ELEM_SIZE字节）
+ * @ 输出: uint8_t: 成功返回 QUEUE_OK(0)，队列空返回 QUEUE_FULL(1)
  * @ 说明: 从CAN接收队列头部读取一条消息并删除该消息，
  *        数据通过data指针返回
  ********/
@@ -102,19 +102,19 @@ unsigned char Can_ReceiveMessage(unsigned char *data)
     unsigned char i;
     unsigned char *p_data;
 
-    p_data = (unsigned char *)Queue_First(&g_can_queue_st);
-    if (p_data == QUEUE_NULL)
+    p_data = (unsigned char *)ela_queue_first(&g_queue_st);
+    if (p_data == QUEUE_NULL_PTR)
     {
-        return FALSE;
+        return QUEUE_FULL;
     }
 
-    for (i = 0; i < CAN_LENGTH; i++)
+    for (i = 0; i < QUEUE_ELEM_SIZE; i++)
     {
         data[i] = p_data[i];
     }
 
-    Queue_Delete(&g_can_queue_st);
-    return TRUE;
+    ela_queue_delete(&g_queue_st);
+    return QUEUE_OK;
 }
 
 /****
@@ -130,7 +130,7 @@ void Can_SendFeedback(unsigned char motor_sel,
                        unsigned char status_flags,
                        unsigned char motion_phase)
 {
-    unsigned char data[CAN_LENGTH];
+    unsigned char data[QUEUE_ELEM_SIZE];
     unsigned char i;
 
     data[0] = (unsigned char)(position & 0xFF);
@@ -142,11 +142,42 @@ void Can_SendFeedback(unsigned char motor_sel,
     data[6] = motion_phase;
 
     data[7] = 0;
-    for (i = 0; i < CAN_LENGTH - 1; i++) {
+    for (i = 0; i < QUEUE_ELEM_SIZE - 1; i++) {
         data[7] += data[i];
     }
 
-    Can_SendMessageExt(0x1AA55F43, data, CAN_LENGTH);
+    Can_SendMessageExt(0x1AA55F43, data, QUEUE_ELEM_SIZE);
+}
+
+/****
+ * @ 输入: motor_sel:电机选择(0x01~0x02)
+ *        param_type:参数类型(0x01=Kp,0x02=Ki,0x03=Kd,
+ *                   0x04=out_max,0x05=out_min,0x06=integral_max)
+ *        param_value:参数值(Q16定点数或直接整数)
+ * @ 输出: void
+ * @ 说明: PID调参专用反馈,byte[4]=参数类型,byte[6]=0x06标识调参反馈
+ ********/
+void Can_SendPidTuningFeedback(unsigned char motor_sel,
+                                unsigned char param_type,
+                                int param_value)
+{
+    unsigned char data[QUEUE_ELEM_SIZE];
+    unsigned char i;
+
+    data[0] = (unsigned char)(param_value & 0xFF);
+    data[1] = (unsigned char)((param_value >> 8) & 0xFF);
+    data[2] = (unsigned char)((param_value >> 16) & 0xFF);
+    data[3] = (unsigned char)((param_value >> 24) & 0xFF);
+    data[4] = param_type;
+    data[5] = motor_sel;
+    data[6] = CMD_PID_TUNING;
+
+    data[7] = 0;
+    for (i = 0; i < QUEUE_ELEM_SIZE - 1; i++) {
+        data[7] += data[i];
+    }
+
+    Can_SendMessageExt(0x1AA55F43, data, QUEUE_ELEM_SIZE);
 }
 
 /* can usr end */

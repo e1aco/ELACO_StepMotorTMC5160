@@ -3,6 +3,7 @@
 #include "ela_eeprom.h"
 #include "ela_button.h"
 #include "ela_tmc5160.h"
+#include "ela_pid.h"
 #include "iwdg.h"
 #include "mb.h"
 
@@ -16,11 +17,17 @@
 #endif
 
 /*  主循环函数部分 */
-uint8_t can_queuedata[CAN_LENGTH];
+uint8_t can_queuedata[QUEUE_ELEM_SIZE];
 
 static void Motor_ProcessCmd(uint8_t *data);
 static void Motor_CheckArrival(void);
 static void Motor_CheckError(void);
+void Motor_PidProc(void);
+
+/* PID控制实例 */
+PID_T g_pid_motor1_st;  /* 电机1 PID控制器 */
+PID_T g_pid_motor2_st;  /* 电机2 PID控制器 */
+volatile unsigned char g_pid_flag;  /* PID控制周期标志(10kHz) */
 
 /* 异常检测状态 - 记录上次已发送的异常标志(bit1-4) */
 static unsigned char g_m1_err_sent;
@@ -32,6 +39,13 @@ void elaco_main(void)
     Can_Init();   // CAN 初始化
     Timer_Init(); // 定时器初始化
     Tmc5160_Init(); // TMC5160 初始化（含模式配置、基础寄存器、使能驱动）
+
+    /* 初始化PID控制器 */
+    Pid_Init(&g_pid_motor1_st);
+    Pid_Init(&g_pid_motor2_st);
+
+    /* 启动PID控制定时器(TIM9, 1kHz) */
+    HAL_TIM_Base_Start_IT(&htim9);
 
 #ifdef ModTest
     // test_freemodbus();
@@ -46,6 +60,14 @@ void elaco_main(void)
         {
             Motor_ProcessCmd(can_queuedata);
         }
+
+        /* PID控制周期(10kHz) */
+        // if (g_pid_flag)
+        // {
+        //     g_pid_flag = 0;
+        //     Motor_PidProc();
+        // }
+
         Motor_CheckArrival(); // 轮询电机到位状态并发送反馈
         // Motor_CheckError();   // 检测电机异常并发送反馈
     }
@@ -71,6 +93,20 @@ static TMC5160_T *Motor_GetChip(unsigned char motor_sel)
 }
 
 /****
+ * @ 输入: motor_sel:电机选择(0x01~0x02)
+ * @ 输出: PID_T *:PID结构体指针,NULL表示无效电机号
+ * @ 说明: 根据电机号获取对应的PID控制器
+ ********/
+static PID_T *Motor_GetPid(unsigned char motor_sel)
+{
+    switch (motor_sel) {
+        case 0x01: return &g_pid_motor1_st;
+        case 0x02: return &g_pid_motor2_st;
+        default:   return NULL;
+    }
+}
+
+/****
  * @ 输入: motor:电机选择 cmd:命令码 value:位置/速度值
  *        profile:运动参数组ID
  * @ 输出: void
@@ -82,33 +118,62 @@ static void Motor_ExecOne(unsigned char motor,
                            unsigned char profile)
 {
     TMC5160_T *chip = Motor_GetChip(motor);
+    PID_T *pid = Motor_GetPid(motor);
 
     if (NULL == chip) return;
 
     switch (cmd) {
-        case 0x01:
-            Tmc5160_ApplyProfile(chip, profile);
-            Tmc5160_MoveTo(chip, value);
+        case CMD_ABS_POSITION: /* 绝对位置(PID闭环) */
+            Pid_SetTarget(pid, value);
+            Pid_Start(pid);
             chip->move_pending = 1;
             break;
-        case 0x02: // 相对位置正转
-            Tmc5160_ApplyProfile(chip, profile);
-            Tmc5160_MoveBy(chip, value);
+        case CMD_REL_FORWARD: /* 相对位置正转(PID闭环) */
+            Pid_SetTarget(pid,
+                          Tmc5160_GetEncoderPosition(chip) + value);
+            Pid_Start(pid);
             chip->move_pending = 1;
             break;
-        case 0x03: // 相对位置反转
-            Tmc5160_ApplyProfile(chip, profile);
-            Tmc5160_MoveBy(chip, -value);
+        case CMD_REL_REVERSE: /* 相对位置反转(PID闭环) */
+            Pid_SetTarget(pid,
+                          Tmc5160_GetEncoderPosition(chip) - value);
+            Pid_Start(pid);
             chip->move_pending = 1;
             break;
-        case 0x04: // 速度模式
-            Tmc5160_ApplyProfile(chip, profile);
+        case CMD_VELOCITY_MODE: /* 速度模式(开环) */
             Tmc5160_SetVelocity(chip, value);
             break;
-        case 0x05: // 停止/刹车
+        case CMD_STOP: /* 停止/刹车 */
+            Pid_Stop(pid);
             Tmc5160_StopMotor(chip);
             chip->move_pending = 0;
             break;
+        case CMD_PID_TUNING: /* PID调参 */
+            switch (profile) { /* 复用字节[6]作为参数类型 */
+                case PID_PARAM_KP:
+                    pid->kp = value;
+                    break;
+                case PID_PARAM_KI:
+                    pid->ki = value;
+                    break;
+                case PID_PARAM_KD:
+                    pid->kd = value;
+                    break;
+                case PID_PARAM_OUT_MAX:
+                    pid->out_max = value;
+                    break;
+                case PID_PARAM_OUT_MIN:
+                    pid->out_min = value;
+                    break;
+                case PID_PARAM_INT_MAX:
+                    pid->integral_max = value;
+                    break;
+                default:
+                    break;
+            }
+            /* PID调参专用反馈: byte[4]=参数类型, byte[6]=0x06 */
+            Can_SendPidTuningFeedback(motor, profile, value);
+            return; /* 跳过通用反馈 */
         default:
             return;
     }
@@ -123,8 +188,8 @@ static void Motor_ExecOne(unsigned char motor,
 }
 
 /****
- * @ 说明: 轮询检查电机是否到位，到位后验证编码器精度，
- *        偏差超限则标记异常，最后发送CAN反馈
+ * @ 说明: 轮询检查电机是否到位(PID模式下由Motor_PidProc处理)
+ *        开环模式下仍保留此函数用于兼容
  ********/
 static void Motor_CheckArrival(void)
 {
@@ -135,6 +200,11 @@ static void Motor_CheckArrival(void)
 
     for (motor = 0; motor < 2; motor++) {
         TMC5160_T *chip = chips[motor];
+        PID_T *pid = (motor == 0) ? &g_pid_motor1_st
+                                  : &g_pid_motor2_st;
+
+        /* PID模式下由Motor_PidProc处理到位 */
+        if (pid->active) continue;
 
         if (0 == chip->move_pending) continue;
 
@@ -196,6 +266,45 @@ static void Motor_CheckError(void)
 }
 
 /****
+ * @ 说明: PID控制处理(10kHz调用)
+ *        读取编码器位置,计算PID输出,写入TMC5160速度寄存器
+ ********/
+void Motor_PidProc(void)
+{
+    unsigned char i = 1;
+    unsigned char motors[2] = {0x01, 0x02};
+    TMC5160_T *chips[2] = {&g_tmc5160_chip1_st,
+                           &g_tmc5160_chip2_st};
+    PID_T *pids[2] = {&g_pid_motor1_st,
+                      &g_pid_motor2_st};
+
+
+        PID_T *pid = pids[i];
+        /* 读取编码器当前位置 */
+        int actual = Tmc5160_GetEncoderPosition(chips[i]);
+
+        /* PID计算,输出速度 */
+        int velocity = Pid_Calc(pid, actual);
+
+        /* 写入TMC5160速度模式 */
+        Tmc5160_SetVelocity(chips[i], velocity);
+
+        /* 到位判定: 误差小于阈值时停止PID (±1°精度) */
+        if (pid->error > -11 && pid->error < 11)
+        {
+            Pid_Stop(pid);
+            Tmc5160_StopMotor(chips[i]);
+            chips[i]->move_pending = 0;
+
+            /* 发送到位反馈 */
+            Can_SendFeedback(motors[i],
+                             Tmc5160_GetPosition(chips[i]),
+                             Tmc5160_GetStatusFlags(chips[i]),
+                             0x10); /* bit4=静止锁轴 */
+        }
+}
+
+/****
  * @ 输出: void
  * @ 说明: 解析CAN命令协议帧,根据命令码和电机号执行操作
  ********/
@@ -236,9 +345,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         g_err_chk_flag = 1;       // 触发异常检测
         // HAL_GPIO_TogglePin(MCU_LED_GPIO_Port, MCU_LED_Pin);
     }
-    if (htim->Instance == TIM9) // PID控制 10Khz
+    if (htim->Instance == TIM9) // PID控制 10kHz
     {
-        // motor_pid_proc();
+        // g_pid_flag = 1;
+        Motor_PidProc();
     }
 }
 
@@ -253,7 +363,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(
     CAN_HandleTypeDef *hcan)
 {
     CAN_RxHeaderTypeDef rx_header;
-    uint8_t rx_data[CAN_LENGTH];
+    uint8_t rx_data[QUEUE_ELEM_SIZE];
     if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0,
                              &rx_header, rx_data) == HAL_OK)
     {
@@ -261,7 +371,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(
                                        rx_data[4] + rx_data[5] + rx_data[6]);
         if (check_code == rx_data[7])
         {
-            Queue_Insert(&g_can_queue_st, rx_data);
+            ela_queue_insert(&g_queue_st, rx_data);
         }
     }
 }

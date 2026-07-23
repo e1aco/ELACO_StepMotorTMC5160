@@ -1,0 +1,15 @@
+{
+  "type": "embedded",
+  "name": "ELACO_StepMotorTMC5160",
+  "plugins": ["embedded"],
+  "mcu": "STM32F407ZET6",
+  "toolchain": "keil",
+  "project_file": "Firmware/StepMotorDriver_Keil/MDK-ARM/StepMotorDriver_Keil.uvprojx",
+  "tools": {
+    "uv4": "C:\\Keil_v5\\UV4\\UV4.exe",
+    "openocd": "tools/openocd/xpack-openocd-0.12.0-7/bin/openocd.exe",
+    "arm_gcc": "E:\\STM32CubeCLT_1.21.0\\GNU-tools-for-STM32\\bin\\arm-none-eabi-gcc.EXE"
+  },
+  "created_at": "2026-07-21",
+  "description": "双轴步进电机驱动器，TMC5160 + STM32F407，CAN总线控制"
+}

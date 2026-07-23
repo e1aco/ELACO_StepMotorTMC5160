@@ -646,9 +646,9 @@
               <FilePath>..\ELA_LIB\ela_eeprom.c</FilePath>
             </File>
             <File>
-              <FileName>ela_motor.c</FileName>
+              <FileName>ela_pid.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\ELA_LIB\ela_motor.c</FilePath>
+              <FilePath>..\ELA_LIB\ela_pid.c</FilePath>
             </File>
           </Files>
         </Group>

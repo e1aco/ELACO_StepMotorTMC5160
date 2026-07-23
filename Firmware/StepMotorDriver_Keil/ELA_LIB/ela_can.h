@@ -15,5 +15,8 @@ void Can_SendFeedback(unsigned char motor_sel,
                        int position,
                        unsigned char status_flags,
                        unsigned char motion_phase);
+void Can_SendPidTuningFeedback(unsigned char motor_sel,
+                                unsigned char param_type,
+                                int param_value);
 
 #endif

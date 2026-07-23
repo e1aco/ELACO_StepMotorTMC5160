@@ -36,7 +36,7 @@
 "stepmotordriver_keil\ela_timer.o"
 "stepmotordriver_keil\ela_tmc5160.o"
 "stepmotordriver_keil\ela_eeprom.o"
-"stepmotordriver_keil\ela_motor.o"
+"stepmotordriver_keil\ela_pid.o"
 "stepmotordriver_keil\mb.o"
 "stepmotordriver_keil\mbascii.o"
 "stepmotordriver_keil\mbcrc.o"

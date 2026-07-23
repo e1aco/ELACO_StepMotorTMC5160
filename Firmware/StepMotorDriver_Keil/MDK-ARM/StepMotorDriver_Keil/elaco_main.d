@@ -50,6 +50,7 @@ stepmotordriver_keil\elaco_main.o: ..\ELA_LIB\ela_timer.h
 stepmotordriver_keil\elaco_main.o: ..\ELA_LIB\ela_tmc5160.h
 stepmotordriver_keil\elaco_main.o: ..\ELA_LIB\ela_eeprom.h
 stepmotordriver_keil\elaco_main.o: ..\ELA_LIB\ela_button.h
+stepmotordriver_keil\elaco_main.o: ..\ELA_LIB\ela_pid.h
 stepmotordriver_keil\elaco_main.o: ../Core/Inc/iwdg.h
 stepmotordriver_keil\elaco_main.o: ../FreeModbus/modbus/mb.h
 stepmotordriver_keil\elaco_main.o: ../FreeModbus/modbus/port.h
