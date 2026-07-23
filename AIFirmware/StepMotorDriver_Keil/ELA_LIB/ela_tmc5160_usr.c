@@ -40,13 +40,17 @@
 /* tmc5160 hlp start */
 
 /****
- * @ 输入: reg_value: 读取到的寄存器值 (0xFFFFFFFF=失败)
+ * @ 输入: reg_value: 读取到的寄存器值
  * @ 输出: 0=有效, 1=无效
  * @ 说明: 校验 SPI 读取结果是否有效
  ********/
 static uint8_t tmc5160_is_reg_valid(uint32_t reg_value)
 {
-    return (0xFFFFFFFF != reg_value) ? 0 : 1;
+    if (0xFFFFFFFF == reg_value || 0x00000000 == reg_value)
+    {
+        return 1;
+    }
+    return 0;
 }
 
 /* tmc5160 hlp end */
@@ -304,9 +308,9 @@ uint8_t ela_tmc5160_get_status_flags(TMC5160_CHIP_T *chip)
 	enc_stat = ela_tmc5160_read_reg(chip, REG_ENC_STATUS); // 这个寄存器不是检测失步的
 
     /* SPI 通讯异常检测 */
-    if (0xFFFFFFFF == ramp_stat ||
-        0xFFFFFFFF == drv_status ||
-        0xFFFFFFFF == gstat)
+    if (tmc5160_is_reg_valid(ramp_stat) ||
+        tmc5160_is_reg_valid(drv_status) ||
+        tmc5160_is_reg_valid(gstat))
     {
         flags |= 0x10;
         return flags;
@@ -392,7 +396,7 @@ uint8_t ela_tmc5160_get_motion_phase(TMC5160_CHIP_T *chip)
 void ela_tmc5160_config_encoder(TMC5160_CHIP_T *chip)
 {
     ela_tmc5160_write_reg(chip, REG_ENCMODE, 0x00);
-    ela_tmc5160_write_reg(chip, REG_ENC_CONST,	
+    ela_tmc5160_write_reg(chip, REG_ENC_CONST,
                           0xFFF33333);
     ela_tmc5160_write_reg(chip, REG_ENC_DEVIATION,
                           TMC5160_ENC_TOLERANCE);
