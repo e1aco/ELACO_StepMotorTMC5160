@@ -41,9 +41,9 @@ version: 3.4.0
 | `/em sessions` | 浏览会话历史（按需） |
 | `/em init` | 初始化项目（自动识别类型） |
 | `/em si` | 存量接入 |
-| `/em new` | **新功能开发**（三档分流：轻/中/重） |
+| `/em new` | **新功能开发**（三档分流：轻/中/重，≥3 子系统自动并行） |
 | `/em disc` | 进入讨论模式（重档独立触发） |
-| `/em verify` | 步骤验证 + HVR + commit 提议 |
+| `/em verify` | 步骤验证 + HVR + 编译时检查 + 并行执行通道 + commit 提议 |
 | `/em result` | 记录验证结果 |
 | `/em sw` | 跨项目切换 |
 | `/em arch` | 归档已完成步骤 |
@@ -65,7 +65,7 @@ version: 3.4.0
 | `/em index` | 更新知识库索引 |
 | `/em mode list` | 列出可复用模块 |
 | `/em mode add <模块>` | 从模块库导入模块到 ELA_LIB/ |
-| `/em mode audit <模块>` | 按规则审核模块 |
+| `/em mode audit <模块>` | 按规则审核模块（默认并行 4 组子 Agent） |
 
 > **子命令路由约定**：AI 执行任一通用命令时，读取 `commands/<cmd>.md`。
 > 通用核不维护命令-文件路由表，约定即可（统一前缀 `commands/`）。

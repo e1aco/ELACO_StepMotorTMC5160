@@ -1,355 +1,425 @@
-# EM-SKILL - 嵌入式项目开发管家
+# EM-SKILL — 嵌入式项目开发管家
 
-**AI辅助嵌入式开发的人机协作工具**
+**EM-SKILL 是一个 Claude Code Skill，专为嵌入式 MCU 开发设计的人-AI 协作框架。**
 
-EM-SKILL 通过人-AI协作工作流，帮助管理嵌入式项目的全生命周期：存量代码接入、需求讨论、硬件验证、问题追踪、文档归档。
+核心特色：HVR 人机协作验证、三档分流（轻/中/重）、多工具链编译（Keil/CMake/GCC）、14 项并行代码审核、自动留痕。
 
 ---
 
-## 快速开始
-
-### 1. 首次安装 - 初始化工具
+## 快速安装
 
 ```bash
+# 1. 克隆到 Claude Skills 目录
+cp -r EM-SKILL ~/.claude/skills/em-skill
+
+# 2. 进入你的嵌入式项目目录
+cd your-project
+
+# 3. 初始化项目
+/em init my_project --type=embedded
+
+# 4. 初始化工具链路径（首次）
 /em initem
 ```
 
-这将配置必要的权限，减少后续操作中的确认提示。
+---
 
-### 2. 接入项目
+## 使用指南
+
+### 1. 日常开发流程
+
+#### 场景：新功能开发
 
 ```bash
-/em si <项目路径>   # 存量接入已有项目
-/em stat           # 查看当前项目状态
+/em new "添加 CAN 通信"
 ```
 
-### 3. 开发流程
+AI 会做三件事：
+1. **三档分流** — 自动判断复杂度，推荐轻/中/重档
+2. **模块联想** — 匹配已有模块库（ela_uart、ela_queue 等）
+3. **启动讨论** — 重档需求走 5 阶段讨论
+
+输出示例：
+```
+🆕 新功能: 添加 CAN 通信
+   分配步骤: S3
+   推荐档位: 重（deep）  理由: 涉及新外设（CAN）+ 协议栈
+   其他档位: /em new ... --light | --std | --deep
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   输入 `继续` 采用推荐档位，或输入 `轻/中/重` 改档。
+```
+
+> **在 ≥3 子系统时**（如同时涉及通信+控制+测量），brainstorm 阶段会**自动启动并行子 Agent**——每个子系统由独立 AI 代理同时调研方案，然后汇总防冲突。
+
+#### 场景：验证代码
 
 ```bash
-/em disc S3        # 进入讨论流程（讨论某个步骤）
-/em verify s3     # 准备验证
-/em result s3-通过  # 提交验证结果
+/em verify s3
+```
+
+三件并行执行：
+```
+Agent-A: 编译（自动识别 Keil 或 CMake 工具链）
+Agent-B: 静态分析（14 项规范检查 + 编译标志检查）
+Agent-C: 代码审查（逻辑正确性 + 边界条件）
+```
+
+> 这个阶段 AI 还会自动检查项目是否启用了 `-Wall -Werror`（GCC）或等效的 Keil 警告标志。
+
+#### 场景：硬件验证
+
+```bash
+# 人类烧录固件 → 观察物理现象 → 提交结果
+/em result s3-通过
+
+# 或：失败了提交现象描述
+/em result s3-失败-LED不闪
+```
+
+通过后 AI 会自动：
+- ✅ 更新 HVR 文件并推进下一步
+- ✅ 自动留痕到项目核心文档（Require/*.lnk）
+- ✅ 更新知识库索引
+- ✅ 提示是否沉淀经验
+
+---
+
+### 2. 编译与工具链
+
+#### 自动检测（日常推荐）
+
+```bash
+/em build
+```
+
+AI 自动检测项目特征：
+
+| 检测信号 | 使用工具链 |
+|---------|-----------|
+| `*.uvprojx` / `*.uvproj` | Keil UV4 |
+| `CMakeLists.txt` + arm-gcc | CMake + make/ninja |
+| `Makefile` + `arm-none-eabi-` | CMake 兼容层 |
+| 无信号 | 提示用户指定 |
+
+#### 指定工具链
+
+```bash
+/em build --keil       # 强制 Keil 编译
+/em build --cmake      # 强制 CMake 编译
+/em build detect       # 只检测，不编译
+```
+
+#### 烧录与串口
+
+```bash
+/em flash       # OpenOCD 烧录（自动检测调试器）
+/em serial      # 串口监控（抓取启动日志）
 ```
 
 ---
 
-## 核心理念
+### 3. 代码审核
 
-### 代码规范最高优先级
+#### 并行审核（默认）
 
-**所有生成的代码必须严格符合 ELA_LIB 编码规范**（`references/ela_rules.md`）。这是最高优先级规则，不可妥协。
-
-**执行要求**：
-1. **生成代码前**：必须加载 `references/ela_rules_quick.md`（嵌入式项目）
-2. **生成代码时**：严格遵循命名、注释、格式、分层等所有规范
-3. **生成代码后**：必须进行 14 项规范检查（`/em mode audit` 流程）
-4. **不符合规范的代码**：必须立即修正，禁止提交
-
-**关键规范速查**：
-- 文件：`ela_` 前缀
-- 函数：`ela_模块_动作_细节`（对外），`模块_动作_细节`（static）
-- 变量：`g_`（全局），`s_`（静态），`g_` + `_st`（结构体全局）
-- 注释：`/**** @输入/@输出/@说明 ****/` 格式
-- 分层：hlp/drv/usr/cac 区段，只有 drv 能碰 HAL
-- 格式：4 空格缩进，Egyptian 大括号，≤84 字符行宽，CRLF
-
-### 人-AI协作
-
-| 角色 | 职责 |
-|------|------|
-| **人类** | 硬件操作、执行验证、观察现象、口述反馈 |
-| **AI** | 文档维护、代码分析、日志解读、方案建议、记录决策 |
-
-### 协作模式
-
+```bash
+/em mode audit ela_pid
 ```
-人类执行验证操作
-    ↓
-观察并口述现象给AI
-    ↓
-AI记录到HVR文件、分析根因、给出建议
-    ↓
-人类确认 / 补充观察
-    ↓
-AI + 人类 共同决策
+
+4 组子 Agent 同时检查 14 项规范：
+```
+Agent-1（命名组）: 函数/变量/类型/宏命名
+Agent-2（注释组）: 文件头/保护名/函数注释
+Agent-3（格式组）: 段标记/drv 区段/代码格式/Magic Number
+Agent-4（安全组）: 头文件独立/宏命名/volatile
+```
+
+约 3 分钟出结果（传统串行约 10 分钟）。
+
+#### 串行审核（降级）
+
+```bash
+/em mode audit ela_pid --serial
 ```
 
 ---
 
-## HVR工作流 - Human Verification Request
+### 4. 知识库管理
 
-HVR是AI维护、人类确认的工作区，用于硬件验证阶段。
+```bash
+# 查看所有需求文档
+/em req
 
-### 完整流程
+# 读取具体文档
+/em req show ELACO_StepMotorTMC5160.md
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  1. 准备阶段                                            │
-│  用户: /em verify s3                                    │
-│       ↓                                                 │
-│  AI: 生成HVR文件 → 启动S5工具（后台）                   │
-└─────────────────────────────────────────────────────────┘
-                          ↓
-┌─────────────────────────────────────────────────────────┐
-│  2. 验证阶段 ←── /em result 在这里提交                 │
-│  用户: 执行验证 → 观察现象 → 提交结果                   │
-│       ↓                                                 │
-│  用户: /em result s3-通过 或 /em result s3-失败-描述    │
-└─────────────────────────────────────────────────────────┘
-                          ↓
-          ┌─────────────────┴─────────────────┐
-          ↓                                   ↓
-    【通过】                              【失败】
-          ↓                                   ↓
-    AI更新文档                          AI读取MCP日志
-    提示下一步                          + 人类补充观察
-                                           ↓
-                                   AI + 人类共同分析
-                                           ↓
-                                   AI + 人类共同修改
+# 读取 PDF 数据手册
+/em req show TMC5160A_Datasheet.pdf
+
+# 修改核心文档（自动留痕）
+/em rq 在 CAN 协议部分添加命令码 0x07
+
+# 重新生成索引
+/em index
 ```
 
-### 验证结果处理
-
-**通过时:**
+资料查找优先级（找到即停）：
 ```
-/em result s3-通过  →  AI更新HVR → 更新project-spec → 提示下一步
-```
-
-**失败时:**
-```
-/em result s3-失败-LED闪红
-    ↓
-AI: [读取MCP日志] → 分析原因
-AI: "可能原因1/2/3，请确认"
-用户: "确认是原因2"
-    ↓
-AI + 人类 共同分析 → 确定修改方案
-AI + 人类 一起修改代码
-    ↓
-重新验证 → /em result s3-通过
+1. 核心文档（Require/*.lnk）← 最优先
+2. 知识库 debug/（学习模式）
+3. Require/ 下其他 .md
+4. Require/ 下 .pdf（内置 Docling/marker 引擎）
+5. 问用户：需不需要上网搜？
 ```
 
 ---
 
-## 命令参考
+### 5. 验证失败处理
 
-### 项目管理
+如果验证不通过，直接告诉 AI 看到了什么现象：
 
-| 命令 | 说明 | 示例 |
+```bash
+/em result s1-a-失败-CAN总线无信号
+```
+
+AI 会自动执行：
+
+```
+🔴 验证结果: 失败
+
+1. 更新 HVR → 失败 + 日志摘要
+2. 🔄 状态: 🔁 返工中
+3. 读取 logs/ 下的最新日志
+4. 自动创建 problem-log.md 条目
+5. 进入问题讨论:
+
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   基于日志分析，可能原因：
+     A. CAN 收发器未使能（最常见）
+     B. 波特率不匹配（250k vs 125k）
+     C. GPIO 复用功能未配置
+   
+   请确认或补充观察...
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+修复后重新走 verify → result 流程：
+
+```bash
+# 修改代码后
+/em verify s1-a            # 重新验证
+# 硬件验证通过后
+/em result s1-a-通过        # 提交通过
+# 原问题自动闭环
+```
+
+> 失败时 AI **不会擅自改代码**——它分析原因、列出可能方案、等你确认后再改。这是 HVR 的设计原则：**AI 提议，人决策。**
+
+### 6. 学习模式（知识沉淀与检索）
+
+学习模式插件提供交互式教学和知识库沉淀，**适用于所有项目类型**。
+
+#### 启用学习模式
+
+```bash
+# 方式1：初始化时指定
+/em init my_learning --type=learning
+
+# 方式2：现有项目直接使用（首次会自动询问启用）
+/em learn teach "STM32 TIM 定时器"
+```
+
+#### 交互式教学
+
+```bash
+# 主题模式：让 AI 调研并教学
+/em learn teach "FreeRTOS 任务优先级与调度"
+
+# 文档模式：基于数据手册生成课程
+/em learn teach --doc TMC5160A_Datasheet.pdf
+
+# 继续上次课程
+/em learn teach continue
+```
+
+教学流程：讲解 → 示例 → 练习 → 反馈 → 复习
+
+#### 知识库沉淀
+
+每次 `/em result` 通过后，AI 会询问是否沉淀经验：
+
+```bash
+💡 是否将此次经验沉淀到知识库？(Y/n)
+```
+
+选择类型：
+
+| 类型 | 用途 | 示例 |
 |------|------|------|
-| `/em initem` | **首次使用必须执行** - 初始化工具权限 | `/em initem` |
-| `/em si <path>` | 存量接入已有项目 | `/em si D:\project` |
-| `/em init <name>` | 初始化新项目 | `/em init motor_ctrl` |
-| `/em stat` | 查看当前步骤状态 | `/em stat` |
-| `/em rec` | 恢复项目上下文 | `/em rec` |
-| `/em sw <name>` | 跨项目切换 | `/em sw motor_ctrl` |
+| `debug` | 调试经验 | "CAN 总线无信号：检查收发器使能引脚" |
+| `concept` | 技术要点 | "TMC5160 速度模式 vs 位置模式区别" |
+| `snippet` | 代码片段 | "SPI DMA 循环收发模板" |
 
-### 开发流程
-
-| 命令 | 说明 | 示例 |
-|------|------|------|
-| `/em new <描述>` | 新功能开发流程 | `/em new 添加CAN通信` |
-| `/em disc [步骤]` | 进入讨论流程 | `/em disc S3` |
-| `/em verify <步骤>` | 准备验证 | `/em verify s3` |
-| `/em result <结果>` | 提交验证结果 | `/em result s3-通过` |
-
-### 工具
-
-| 命令 | 说明 | 示例 |
-|------|------|------|
-| `/em arch` | 归档文件 | `/em arch` |
-| `/em sum` | 生成上下文摘要 | `/em sum` |
-| `/em pi` | 查看项目索引 | `/em pi` |
-| `/em gi` | 查看全局索引 | `/em gi` |
-| `/em help [命令]` | 查看命令帮助 | `/em help verify` |
-
----
-
-## 开发步骤
-
-| 步骤 | 名称 | 说明 |
-|------|------|------|
-| S1 | 存量接入 | 接入已有代码库，建立项目上下文 |
-| S2 | 需求对齐 | 讨论并明确功能需求、硬件规格 |
-| S3 | HVR增强 | Human Verification Request工作流增强 |
-| S4 | 芯片学习 | 建立芯片知识库，自动识别芯片型号 |
-| S5 | 串口调试 | 串口监控工具 + MCP接口，支持AI读取日志 |
-| S6 | 文件归档 | 自动归档机制，保持文档精简 |
-
----
-
-## 项目结构
-
-```
-项目根目录/
-├── .emv2/                      # EM-SKILL工作区
-│   ├── project-spec.md        # 项目规格单（必读）
-│   ├── memory-log.md           # 记忆日志（必读）
-│   ├── problem-log.md          # 问题追踪
-│   ├── decision-log.md         # 关键决策
-│   ├── discussion/             # 讨论结果
-│   │   └── <需求ID>/
-│   │       ├── requirements.md
-│   │       ├── hardware.md
-│   │       ├── brainstorm.md
-│   │       └── milestones.md
-│   ├── checkpoints/           # HVR验证文件
-│   │   └── HVR-S<X>-<N>.md
-│   ├── history/                # 归档
-│   │   └── index.md
-│   └── logs/                   # 串口日志
-│       └── serial_<步骤>_<时间>.log
-│
-└── EM-SKILL/                   # 技能定义
-    ├── SKILL.md                # 技能入口
-    ├── README.md               # 本文件
-    ├── commands/               # 通用命令定义
-    ├── workflows/              # 工作流细则
-    ├── templates/              # 模板文件
-    ├── plugins/                # 插件目录（详见 ## 插件扩展）
-    │   ├── INDEX.md            # 插件索引
-    │   ├── embedded/           # 嵌入式插件（S5 串口/S9 工具链）
-    │   └── learning/           # 学习模式插件（S14 LPR 闭环）
-    └── tools/                  # 工具集
-        └── serial-mcp/         # S5串口工具
-```
-
----
-
-## S5 串口调试工具
-
-人-AI协作验证的核心工具，提供串口监控和MCP接口。
-
-### 功能
-
-- 串口配置（端口、波特率、数据位、校验位、停止位）
-- 实时日志显示
-- 命令发送
-- 日志保存
-- MCP接口（供AI读取日志）
-
-### MCP工具
-
-| 工具 | 功能 |
-|------|------|
-| `serial_status` | 获取连接状态 |
-| `serial_read` | 读取日志文件 |
-| `serial_send` | 发送命令到串口 |
-| `serial_log_file` | 获取日志文件路径 |
-
-### 启动
+沉淀后自动归类到 `.em/learning/kb/`，下次遇到问题时优先搜索：
 
 ```bash
-/em verify s5    # 启动S5工具进行验证
+# 查看知识库
+/em learn kb
+
+# 搜索经验
+/em learn kb search CAN 无信号
+
+# 查看学习进度
+/em learn status
 ```
 
 ---
 
-## 芯片学习机制
-
-EM-SKILL自动识别项目使用的芯片型号，并建立知识库。
-
-### 识别方式
-
-通过扫描代码中的 `system_*.c` 和 `startup_*.s` 文件识别芯片。
-
-| 文件名模式 | 厂商 | 芯片系列 |
-|-----------|------|----------|
-| `system_stm32f4xx.c` | ST | STM32F4xx |
-| `system_gd32f4xx.c` | GigaDevice | GD32F4xx |
-| `system_ch32v2xx.c` | WCH | CH32V2xx |
-
-### 知识库
-
-- **位置**: `~/.claude/chips.json`
-- **内置芯片**: STM32F1/F4, GD32F1/F4, CH32V1/V2等
-- **学习芯片**: 首次识别到新芯片时自动添加
-
----
-
-## 归档规则
-
-| 文件类型 | 触发条件 | 说明 |
-|----------|----------|------|
-| memory-log.md | > 600行 或 S步骤完成 或 会话结束 | 按会话归档 |
-| project-spec.md | S步骤完成 | 按里程碑归档 |
-| problem-log.md | > 300行 | 问题追踪记录 |
-| decision-log.md | > 300行 | 关键决策记录 |
-
----
-
-## 插件扩展
-
-EM-SKILL 采用「通用核 + 插件」架构（v3.0）。通用核提供 16 个基础命令，插件提供场景化扩展，**物理解耦**：每个插件可独立卸载，通用核不依赖。
-
-### 已注册插件
-
-| 插件 | 路径 | 启用条件 | 提供能力 |
-|------|------|----------|----------|
-| **embedded** | `plugins/embedded/` | `project.json.type == "embedded"` 或检测 Keil/CubeMX/ESP-IDF/PlatformIO | `/em initem` + 串口/烧录/编译工具链 + 嵌入式 verify |
-| **learning** | `plugins/learning/` | `project.json.type == "learning"` 或检测 `.em/learning/` | `/em learn teach/kb/status` + 交互式教学 + 知识库沉淀检索 |
-
-完整索引：[`plugins/INDEX.md`](./plugins/INDEX.md)
-
-### 加载机制
-
-`<STATE_DIR>/project.json` 中设置 `"type"`：
-
-```json
-{
-  "type": "learning"
-}
-```
-
-或 `/em init` / `/em si` 时自动检测项目特征后询问启用。
-
-### 嵌入式插件核心
-
-嵌入式场景由 `plugins/embedded/` 提供完整支持：串口/烧录/编译/芯片学习/embed-ai-tool 整合。所有原 S5/S9 能力已迁移至此。
-
-### 学习模式插件
-
-学习场景由 `plugins/learning/` 提供交互式教学 + 知识库沉淀：
-- **交互式教学**（`/em learn teach`）：基于主题或文档，生成课程并逐章教学（整合 learn-everything）
-- **知识库**（`/em learn kb`）：沉淀调试经验、技术要点、代码片段，支持检索复用
-
----
-
-## 安装
-
-### 方式1: 复制到Claude Skills目录
+### 7. 项目初始化
 
 ```bash
-cp -r EM-SKILL ~/.claude/skills/
+# 新项目
+/em init motor_ctrl
+
+# 存量代码接入
+/em si /path/to/existing-project
+
+# 恢复已有项目
+/em rec
 ```
 
-### 方式2: 使用skill-install安装
+`/em init` 调用 `builder.py detect` 自动检测项目类型：
 
-```
-/skill-install <repo-url>
-```
+| builder.py 返回值 | 推荐类型 |
+|---------|---------|
+| `keil` | embedded |
+| `cmake`（含交叉编译链）| embedded |
+| `iar` / `esp_idf` / `platformio` | embedded |
+| 全无 + 扫到 `.ioc`/`.ino`/`system_*.c` | embedded |
+| 全无 | general |
 
-### 初始化
+---
+
+### 8. 模块管理
+
+模块分 A~E 五级（A=零移植，E=项目专属）：
 
 ```bash
-/em initem
+# 列出可用模块
+/em mode list
+
+# 审核模块（14 项并行检查）
+/em mode audit ela_queue
+
+# 安装模块到项目（自动递归解析依赖）
+/em mode install ela_pid
 ```
 
-### 依赖安装（S5串口工具）
+安装时自动：
+- 解析模块依赖（如 ela_pid → ela_queue）
+- 创建 ELA_LIB 目录结构
+- 更新 elaco_main.h 的 include
+- 14 项规范检查
 
-```bash
-cd EM-SKILL/plugins/embedded/tools/serial-mcp
-pip install -r requirements.txt
+---
+
+## 新手场景速查
+
+| 你的状态 | 执行 |
+|---------|------|
+| **全新项目** | `/em init my_project` → `/em new "第一个功能"` |
+| **接手旧代码** | `/em si .` → `/em rec` |
+| **写了一个文件要验证** | `/em verify s1` |
+| **验证通过** | `/em result s1-通过` |
+| **要加个小功能** | `/em new "修 BAUD 率计算 bug" --light` |
+| **编译报错** | `/em build --keil`（或 `--cmake`）|
+| **想导入现成模块** | `/em mode install ela_queue` |
+| **要查数据手册** | `/em req show TMC5160A_Datasheet.pdf` |
+| **验证失败** | `/em result s1-失败-CAN无信号` → AI 分析原因→修复→重新 verify |
+| **沉淀经验** | `/em result` 通过后 → `y` → 选 `debug`/`concept`/`snippet` |
+| **学习新知识** | `/em learn teach "FreeRTOS 调度"` |
+| **忘记命令了** | `/em help` |
+
+---
+
+## 概念速览
+
+### HVR 工作流（核心创新）
+
+HVR（Human Verification Request）解决"AI 能写代码但摸不到硬件"的矛盾：
+
+```
+AI: 生成 HVR 文件 → 编译 → 烧录 → 抓串口日志
+                                              ↓
+人类: 执行物理操作 → 观察 LED/波形/电机 → 口述给 AI
+                                              ↓
+AI: 分析结果 → 更新 HVR → 推进/返工
+```
+
+### 三档分流
+
+| 档位 | 适用 | 耗时 | 产出文件 |
+|------|------|------|---------|
+| **light** | bugfix、调参、单文件 | ~5 min | 1 个 quick-plan |
+| **standard** | 跨模块特性 | ~15 min | brainstorm + milestones |
+| **deep** | 新外设、协议栈、重构 | ~45 min | 5 阶段讨论文件 |
+
+### 子 Agent 并行调度
+
+| 场景 | 并行数 | 说明 |
+|------|--------|------|
+| 14 项代码审核 | 4 | 命名/注释/格式/安全四组同时跑 |
+| ≥3 子系统 brainstorm | 3 | 每子系统独立 AI 调研方案 |
+| verify 编译+分析+审查 | 3 | 编译/静态分析/代码审查同时 |
+
+> 子 Agent 失败→自动降级串行，不阻断流程。
+
+---
+
+## 目录结构
+
+```
+EM-SKILL/
+├── SKILL.md                     # 技能入口
+├── README.md                    # 本文件
+├── commands/                    # 命令定义（17 个通用命令）
+│   ├── new.md / verify.md / mode.md / build.md / ...
+├── workflows/                   # 工作流
+│   ├── hvr-workflow.md
+│   ├── new-light.md / new-standard.md
+│   └── discussion-flow.md
+├── references/
+│   ├── ela_rules.md             # 完整编码规范（380+ 行）
+│   └── ela_rules_quick.md       # 编码规范速查（≤70 行）
+├── templates/                   # 状态文件模板
+├── modules/                     # 模块库（A~E 五级）
+│   ├── MODULES.md
+│   └── ela_queue.c/h
+├── plugins/                     # 插件
+│   ├── embedded/                # 嵌入式插件（编译/烧录/串口）
+│   └── learning/                # 学习模式插件（教学/知识库）
+├── tools/
+│   ├── build-dispatcher/        # 统一编译入口（Keil/CMake/GCC）
+│   ├── build-keil/              # Keil 编译脚本
+│   ├── flash-openocd/           # 烧录脚本
+│   ├── serial-mcp/              # 串口 GUI + MCP server
+│   └── serial-monitor/          # 串口 CLI 抓日志
+├── docs/
+│   ├── PLUGIN-SPEC.md           # 插件规范 v1.0
+│   └── subagent-principles.md   # 子 Agent 调度原则
+└── CHANGELOG.md
 ```
 
 ---
 
 ## 相关文档
 
-- [SKILL.md](./SKILL.md) - 技能入口定义
-- [workflows/hvr-workflow.md](./workflows/hvr-workflow.md) - HVR工作流细则
-- [workflows/discussion-flow.md](./workflows/discussion-flow.md) - 讨论流程
-- [workflows/chip-learning.md](./workflows/chip-learning.md) - 芯片学习机制
-- [commands/](./commands/) - 各命令详细文档
-- [tools/serial-mcp/README.md](./tools/serial-mcp/README.md) - S5串口工具说明
+| 想看什么 | 看哪个 |
+|---------|--------|
+| 全部命令 | `SKILL.md` |
+| 快速开始 | 本文件 |
+| 编码规范 | `references/ela_rules_quick.md` |
+| 插件开发 | `docs/PLUGIN-SPEC.md` |
+| 子 Agent | `docs/subagent-principles.md` |
+| HVR 细则 | `workflows/hvr-workflow.md` |
+| 模块库 | `modules/MODULES.md` |

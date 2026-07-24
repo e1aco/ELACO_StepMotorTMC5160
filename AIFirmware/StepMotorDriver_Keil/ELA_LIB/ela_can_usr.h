@@ -21,25 +21,16 @@
 #define CMD_VELOCITY    0x04
 #define CMD_STOP        0x05
 #define CMD_PID_ADJUST  0x06
+#define CMD_CL_ENABLE   0x07
+#define CMD_CL_DISABLE  0x08
 
-/* 电机选择 */
-#define MOTOR_U1        0x01
-#define MOTOR_U2        0x02
-#define MOTOR_ALL       0x06
-
-/* 运动参数组 */
-#define MOTION_GROUP_1  0x01
-#define MOTION_GROUP_2  0x02
-#define MOTION_GROUP_3  0x03
-#define MOTION_GROUP_4  0x04
-
-/* PID 参数类型 */
-#define PID_KP          0x01
-#define PID_KI          0x02
-#define PID_KD          0x03
-#define PID_OUT_MAX     0x04
-#define PID_OUT_MIN     0x05
-#define PID_INT_MAX     0x06
+/* PID 参数类型 (CAN 0x06 命令 byte[6]) */
+#define CAN_PID_KP          0x01
+#define CAN_PID_KI          0x02
+#define CAN_PID_KD          0x03
+#define CAN_PID_OUT_MAX     0x04
+#define CAN_PID_OUT_MIN     0x05
+#define CAN_PID_INT_MAX     0x06
 
 /* 状态标志位 */
 #define STATUS_DONE     BIT(0)

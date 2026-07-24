@@ -17,24 +17,29 @@
 1. **【目录检测】** 当前目录已有 `.em/` 或 `.emv2/` → 提示「项目已初始化」+ 给 `/em rec` 建议
 2. **【类型判定】**
    - 命令带 `--type=...` → 直接采用
-   - 否则按下表启发式扫描，给推荐：
+   - 否则调用 **`builder.py detect`** 进行统一工具链检测：
 
-| 信号（任一命中）| 推荐类型 |
-|------|---------|
-| `*.uvprojx` / `*.uvproj` | embedded（Keil） |
-| `*.ioc` | embedded（CubeMX） |
-| `sdkconfig` + `main/CMakeLists.txt` | embedded（ESP-IDF） |
-| `platformio.ini` | embedded（PlatformIO） |
-| `*.ino` | embedded（Arduino） |
-| `*.eww` / `*.ewp` | embedded（IAR） |
-| `system_<stm32\|gd32\|ch32>f?xx.c` / `startup_*.s` | embedded |
-| Makefile 含 `arm-none-eabi-` 等交叉编译链 | embedded |
-| 上述均无 | general |
+   ```bash
+   python EM-SKILL/tools/build-dispatcher/scripts/builder.py detect --project <项目目录>
+   ```
+
+   检测结果→类型映射：
+
+   | builder.py 返回值 | 推荐类型 |
+   |---|---|
+   | `keil` | embedded |
+   | `iar` | embedded |
+   | `cmake`（含交叉编译链）| embedded |
+   | `esp_idf` / `platformio` | embedded |
+   | `null` + 扫到 `.ioc`/`.ino`/`system_*.c` | embedded |
+   | 全无 | general |
+
+   > `builder.py` 是工具链检测的唯一权威入口。`init.md` 不再维护独立信号表。
 
    - 输出推荐 + 让用户确认：
      ```
      📋 项目类型判定
-        扫描结果: <匹配的特征，或"未命中"> 
+        扫描结果: <builder.py detect 的返回值>
         推荐类型: <general|embedded>
         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         输入 `继续` 采用推荐，或 `general` / `embedded` 改选。

@@ -10,7 +10,7 @@
    │
    ├─ 嵌入式注入：编译 → 烧录 → 串口（三连）
    │   │
-   │   ├─ build-keil      （编译固件）
+   │   ├─ build-dispatcher（自动检测 Keil/CMake）
    │   ├─ flash-openocd   （烧录到芯片）
    │   └─ serial-monitor / serial-mcp （抓取启动日志）
    │
@@ -19,32 +19,43 @@
 
 **关键**：AI 连续自动执行三步，用户只需观察物理现象并口述结果。
 
-## 子流程 1: 编译（build-keil）
+## 子流程 1: 编译（build-dispatcher）
+
+### 工具链自动检测
+
+AI 调用 `builder.py detect` 检测项目工具链：
+
+```bash
+python EM-SKILL/tools/build-dispatcher/scripts/builder.py \
+  detect --project <项目目录>
+```
+
+检测结果决定调用哪个 builder：
+
+| 检测结果 | 调用脚本 | 产物格式 |
+|---------|---------|---------|
+| `keil` | `tools/build-keil/scripts/keil_builder.py` | `.axf` |
+| `cmake` | `tools/build-dispatcher/scripts/cmake_builder.py` | `.elf` / `.bin` |
 
 ### 调用方式
 
 ```bash
-python EM-SKILL/plugins/embedded/tools/build-keil/scripts/keil_builder.py \
-  --project <工程文件路径> \
-  --target <目标名>
+python EM-SKILL/tools/build-dispatcher/scripts/builder.py \
+  --project <项目目录> \
+  --skill-dir EM-SKILL
 ```
-
-### 参数来源
-
-| 参数 | 来源 |
-|------|------|
-| `--project` | 扫描工作区 `*.uvprojx`/`*.uvproj` |
-| `--target` | 工程中第一个 Target 或用户指定 |
-| UV4 路径 | 自动从 `tool_config`（initem 注册）读取 |
 
 ### 检测工程
 
+AI 自动在工作区中查找工程文件：
+
 ```bash
-python -c "
-from pathlib import Path
-for p in Path('.').rglob('*.uvprojx'): print(p)
-for p in Path('.').rglob('*.uvproj'):  print(p)
-"
+# Keil
+python -c "from pathlib import Path; [print(p) for p in Path('.').rglob('*.uvprojx')]"
+python -c "from pathlib import Path; [print(p) for p in Path('.').rglob('*.uvproj')]"
+
+# CMake
+python -c "from pathlib import Path; [print(p) for p in Path('.').rglob('CMakeLists.txt')]"
 ```
 
 ### 结果提取（写 HVR）
@@ -84,7 +95,7 @@ python EM-SKILL/plugins/embedded/tools/flash-openocd/scripts/openocd_flasher.py 
 
 | 参数 | 来源 |
 |------|------|
-| `--artifact` | 上一步 build-keil 的产物路径 |
+| `--artifact` | 上一步 build-dispatcher 的产物路径（.axf / .elf / .bin）|
 | `--interface` | `--detect` 探测结果（stlink/jlink/cmsis-dap） |
 | `--target` | 根据芯片型号选择（GD32F407 → `target/stm32f4x.cfg`） |
 
@@ -168,7 +179,7 @@ GUI 独立进程，AI 继续其他工作。
 
 | 步骤 | 工具 | 结果 |
 |------|------|------|
-| 编译 | build-keil | <成功/失败> + 产物路径 |
+| 编译 | build-dispatcher | <成功/失败> + 工具链 + 产物路径 |
 | 烧录 | flash-openocd | <成功/失败> + interface |
 | 串口 | serial-monitor | <抓到启动日志/未抓到> |
 

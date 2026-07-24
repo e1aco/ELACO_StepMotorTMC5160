@@ -39,3 +39,5 @@ stepmotordriver_keil\ela_can_usr.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4x
 stepmotordriver_keil\ela_can_usr.o: ../Core/Inc/can.h
 stepmotordriver_keil\ela_can_usr.o: ..\ELA_LIB\ela_queue.h
 stepmotordriver_keil\ela_can_usr.o: ..\ELA_LIB\ela_motor_ctrl.h
+stepmotordriver_keil\ela_can_usr.o: ..\ELA_LIB\ela_tmc5160_usr.h
+stepmotordriver_keil\ela_can_usr.o: ..\ELA_LIB\ela_closed_loop.h

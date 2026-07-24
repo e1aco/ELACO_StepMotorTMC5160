@@ -20,13 +20,23 @@ typedef enum {
     MOVE_TIMEOUT,
     MOVE_DEVIATION,
     MOVE_SPI_ERROR
-} TMC5160_MOVE_RESULT;
+} TMC5160_MOVE_RESULT_T;
+
+/* ---- Flash 配置 ---- */
+#define CHIP_CONFIG_MAGIC    0x454C4143  /* "ELAC" */
+
+typedef struct {
+    uint32_t magic;
+    uint8_t  mode;
+    uint8_t  closed_loop;
+    uint16_t checksum;
+} CHIP_CONFIG_T;
 
 /* ---- 芯片状态 ---- */
 typedef struct {
     uint8_t chip_number;
     uint8_t mode;
-    uint8_t move_pending;
+    uint8_t closed_loop;
 } TMC5160_CHIP_T;
 
 /* ---- 运动参数组 ---- */
@@ -40,7 +50,7 @@ typedef struct {
     uint32_t d1;
     uint32_t dmax;
     uint32_t tzerowait;
-} TMC5160_MOTION_PROFILE;
+} TMC5160_MOTION_PROFILE_T;
 
 #define TMC5160_PROFILE_COUNT  4
 
@@ -92,9 +102,13 @@ uint8_t ela_tmc5160_check_position(TMC5160_CHIP_T *chip,
                                     int32_t expected_steps);
 
 /* ---- 带验证的运动 ---- */
-TMC5160_MOVE_RESULT ela_tmc5160_wait_position(
+TMC5160_MOVE_RESULT_T ela_tmc5160_wait_position(
     TMC5160_CHIP_T *chip, uint32_t timeout_ms);
-TMC5160_MOVE_RESULT ela_tmc5160_move_to_with_verify(
+TMC5160_MOVE_RESULT_T ela_tmc5160_move_to_with_verify(
     TMC5160_CHIP_T *chip, int32_t target);
+
+/* ---- 配置持久化 ---- */
+void ela_tmc5160_set_dirty(void);
+void ela_tmc5160_save_config(void);
 
 #endif

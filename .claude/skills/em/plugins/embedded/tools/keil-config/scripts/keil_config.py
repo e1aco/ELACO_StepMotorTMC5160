@@ -36,7 +36,7 @@ def find_projects(scan_dir: str) -> list[Path]:
 
 def get_ela_lib_c_files(project_path: Path) -> list[Path]:
     """获取 ELA_LIB/ 下所有 .c 文件（相对于 .uvprojx 的 ../ELA_LIB/）"""
-    ela_lib_dir = project_path.parent / "ELA_LIB"
+    ela_lib_dir = project_path.parent.parent / "ELA_LIB"
     if not ela_lib_dir.exists():
         return []
     return sorted(ela_lib_dir.rglob("*.c"))

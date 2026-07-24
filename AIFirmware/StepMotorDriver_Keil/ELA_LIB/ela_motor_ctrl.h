@@ -10,6 +10,7 @@
 #define ELA_MOTOR_CTRL_H
 
 #include <stdint.h>
+#include "ela_tmc5160_usr.h"
 
 /* 电机编号 */
 #define MOTOR_CTRL_U1   0x01
@@ -23,6 +24,7 @@
 #define MOTION_GROUP_4  0x04
 
 void ela_motor_ctrl_init(void);
+TMC5160_CHIP_T *ela_motor_ctrl_get_chip(uint8_t motor);
 void ela_motor_ctrl_move_to(uint8_t motor, int32_t target);
 void ela_motor_ctrl_move_by(uint8_t motor, int32_t offset);
 void ela_motor_ctrl_set_velocity(uint8_t motor, int32_t velocity);

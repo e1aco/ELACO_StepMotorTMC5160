@@ -41,5 +41,7 @@ stepmotordriver_keil\elaco_main.o: ../Core/Inc/can.h
 stepmotordriver_keil\elaco_main.o: ..\ELA_LIB\ela_can_usr.h
 stepmotordriver_keil\elaco_main.o: ..\ELA_LIB\ela_tmc5160_usr.h
 stepmotordriver_keil\elaco_main.o: ..\ELA_LIB\ela_motor_ctrl.h
+stepmotordriver_keil\elaco_main.o: ..\ELA_LIB\ela_closed_loop.h
 stepmotordriver_keil\elaco_main.o: ../Core/Inc/iwdg.h
 stepmotordriver_keil\elaco_main.o: ../TEXT/ela_tmc5160_test.h
+stepmotordriver_keil\elaco_main.o: ../Core/Inc/tim.h

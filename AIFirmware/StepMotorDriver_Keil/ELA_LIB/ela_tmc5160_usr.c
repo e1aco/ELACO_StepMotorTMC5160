@@ -4,9 +4,11 @@
  * @ 日期: 2026-07-22
  * @ 版本: 1.0.0
  * @ 说明: TMC5160 业务逻辑层，运动控制/编码器/状态
+ * @ 依赖: ela_eeprom
  ********/
 #include "ela_tmc5160_usr.h"
 #include "ela_tmc5160_drv.h"
+#include "ela_eeprom.h"
 
 //----------------------------------------------------------------------------------
 /* tmc5160 寄存器地址 (usr 层只读常量) */
@@ -60,6 +62,114 @@ static uint8_t tmc5160_is_reg_valid(uint32_t reg_value)
 TMC5160_CHIP_T g_tmc5160_chip1_st;
 TMC5160_CHIP_T g_tmc5160_chip2_st;
 
+static uint8_t g_chip_dirty;
+
+/****
+ * @ 输入: 无
+ * @ 输出: 无
+ * @ 说明: 置脏标记，主循环中检测并写入 Flash
+ ********/
+void ela_tmc5160_set_dirty(void)
+{
+    g_chip_dirty = 1;
+}
+
+/****
+ * @ 输入: chip: 芯片指针; idx: chip 在 Flash 中的偏移索引 (0/1)
+ * @ 输出: 无
+ * @ 说明: 从 Flash 加载芯片配置
+ * @ 注意: 不可在 ISR 中调用（涉及 Flash 读取）
+ ********/
+static void chip_config_load(TMC5160_CHIP_T *chip,
+                             uint8_t idx)
+{
+    CHIP_CONFIG_T cfg;
+    uint32_t offset = idx * sizeof(CHIP_CONFIG_T);
+    uint16_t expected;
+
+    ela_eeprom_read(&g_eeprom_caliblock_st, offset,
+                    &cfg, sizeof(CHIP_CONFIG_T));
+
+    expected = (uint16_t)(cfg.magic + cfg.mode +
+                          cfg.closed_loop);
+
+    if (CHIP_CONFIG_MAGIC == cfg.magic &&
+        expected == cfg.checksum)
+    {
+        chip->mode = cfg.mode;
+        chip->closed_loop = cfg.closed_loop;
+    }
+    else
+    {
+        chip->mode = TMC5160_MODE_POSITION;
+        chip->closed_loop = 0;
+    }
+}
+
+/****
+ * @ 输入: 无
+ * @ 输出: 无
+ * @ 说明: 将两个芯片的配置写入 Flash
+ * @ 注意: 不可在 ISR 中调用（涉及 Flash 擦写）
+ ********/
+static void chip_config_save(void)
+{
+    TMC5160_CHIP_T *chips[2] = {
+        &g_tmc5160_chip1_st,
+        &g_tmc5160_chip2_st
+    };
+    CHIP_CONFIG_T old, new_cfg;
+    uint8_t changed = 0;
+    uint8_t i;
+
+    /* 比对是否有变化 */
+    for (i = 0; i < 2; i++)
+    {
+        uint32_t offset = i * sizeof(CHIP_CONFIG_T);
+        ela_eeprom_read(&g_eeprom_caliblock_st, offset,
+                        &old, sizeof(CHIP_CONFIG_T));
+
+        if (old.mode != chips[i]->mode ||
+            old.closed_loop != chips[i]->closed_loop)
+        {
+            changed = 1;
+            break;
+        }
+    }
+
+    if (!changed) return;
+
+    /* 擦除后逐个写入 */
+    ela_eeprom_erase(&g_eeprom_caliblock_st);
+
+    for (i = 0; i < 2; i++)
+    {
+        uint32_t offset = i * sizeof(CHIP_CONFIG_T);
+        new_cfg.magic = CHIP_CONFIG_MAGIC;
+        new_cfg.mode = chips[i]->mode;
+        new_cfg.closed_loop = chips[i]->closed_loop;
+        new_cfg.checksum = (uint16_t)(
+            new_cfg.magic + new_cfg.mode +
+            new_cfg.closed_loop);
+
+        ela_eeprom_write(offset, &g_eeprom_caliblock_st,
+                         &new_cfg, sizeof(CHIP_CONFIG_T));
+    }
+}
+
+/****
+ * @ 输入: 无
+ * @ 输出: 无
+ * @ 说明: 检测脏标记，有变化则写入 Flash
+ * @ 注意: 不可在 ISR 中调用（涉及 Flash 擦写）
+ ********/
+void ela_tmc5160_save_config(void)
+{
+    if (!g_chip_dirty) return;
+    g_chip_dirty = 0;
+    chip_config_save();
+}
+
 /****
  * @ 输入: 无
  * @ 输出: 无
@@ -84,8 +194,9 @@ void ela_tmc5160_init(void)
     {
         TMC5160_CHIP_T *chip = chips[i];
         chip->chip_number = i + 1;
-        chip->mode = TMC5160_MODE_POSITION;
-        chip->move_pending = 0;
+
+        /* 从 Flash 加载配置（首次上电用默认值） */
+        chip_config_load(chip, i);
 
         /* 设置模式引脚 */
         tmc5160_drv_set_mode(chip->chip_number,
@@ -151,7 +262,7 @@ uint32_t ela_tmc5160_read_reg(TMC5160_CHIP_T *chip,
 
 /* ---- 运动参数组 ---- */
 
-static const TMC5160_MOTION_PROFILE
+static const TMC5160_MOTION_PROFILE_T
     g_profiles[TMC5160_PROFILE_COUNT] = {
         {0, 10, 0, 0, 1000, 5000, 1000, 1000, 10},
         {0, 10, 0, 0, 5000, 20000, 5000, 5000, 10},
@@ -168,7 +279,7 @@ static const TMC5160_MOTION_PROFILE
 void ela_tmc5160_apply_profile(TMC5160_CHIP_T *chip,
                                 uint8_t profile_id)
 {
-    const TMC5160_MOTION_PROFILE *p;
+    const TMC5160_MOTION_PROFILE_T *p;
 
     if (0 == profile_id ||
         TMC5160_PROFILE_COUNT < profile_id)
@@ -308,7 +419,7 @@ uint8_t ela_tmc5160_get_status_flags(TMC5160_CHIP_T *chip)
 	enc_stat = ela_tmc5160_read_reg(chip, REG_ENC_STATUS); // 这个寄存器不是检测失步的
 
     /* SPI 通讯异常检测 */
-    if (tmc5160_is_reg_valid(ramp_stat) ||
+    if (tmc5160_is_reg_valid(ramp_stat) ||  
         tmc5160_is_reg_valid(drv_status) ||
         tmc5160_is_reg_valid(gstat))
     {
@@ -476,10 +587,10 @@ uint8_t ela_tmc5160_check_position(
 /****
  * @ 输入: chip: TMC5160_CHIP_T 结构体指针
  *        timeout_ms: 超时时间 (毫秒)
- * @ 输出: TMC5160_MOVE_RESULT
+ * @ 输出: TMC5160_MOVE_RESULT_T
  * @ 说明: 等待芯片完成定位, 检测 RAMP_STAT.bit9
  ********/
-TMC5160_MOVE_RESULT ela_tmc5160_wait_position(
+TMC5160_MOVE_RESULT_T ela_tmc5160_wait_position(
     TMC5160_CHIP_T *chip, uint32_t timeout_ms)
 {
     uint32_t elapsed = 0;
@@ -509,14 +620,14 @@ TMC5160_MOVE_RESULT ela_tmc5160_wait_position(
 /****
  * @ 输入: chip: TMC5160_CHIP_T 结构体指针
  *        target: 目标绝对位置
- * @ 输出: TMC5160_MOVE_RESULT
+ * @ 输出: TMC5160_MOVE_RESULT_T
  * @ 说明: 执行位置运动并验证编码器精度,
  *   偏差超限时自动重试
  ********/
-TMC5160_MOVE_RESULT ela_tmc5160_move_to_with_verify(
+TMC5160_MOVE_RESULT_T ela_tmc5160_move_to_with_verify(
     TMC5160_CHIP_T *chip, int32_t target)
 {
-    TMC5160_MOVE_RESULT result;
+    TMC5160_MOVE_RESULT_T result;
     int32_t current_pos, move_delta;
     int32_t enc_before, enc_after;
     int32_t deviation;

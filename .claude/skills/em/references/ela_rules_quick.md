@@ -3,6 +3,16 @@
 > 完整版: `references/ela_rules.md`（380+ 行，按需加载）
 > 本文件供 `/em new` 和 `/em verify` 时快速参考。
 
+## 编码前检查（强制）
+
+```
+编码前必须完成：
+1. 加载本文件（ela_rules_quick.md）
+2. 检查命名规范（文件/函数/变量/类型/宏）
+3. 查阅相关数据手册（硬件相关时）
+4. 确认 drv 决策（是否需要拆分）
+```
+
 ## 文件位置（铁律）
 
 | 文件 | 位置 | 说明 |
@@ -89,6 +99,24 @@
 - **配置**: 三态模式 CONFIG_RESTORE/OK/COMMIT
 - **段标记**: `/* 模块名_层 start/end */`（如 `/* tmc5160 drv start */`），不写 `module`
 - **drv 暴露**: 推荐非 static 直接暴露（Pattern B），不强制包一层
+- **注释同步**: 函数行为变更时，`@ 说明`/`@ 注意`/`@ 依赖` 必须同步更新
+- **禁止盲目复制**: 从其他版本迁移代码时，必须先按目标规范重命名，禁止原样搬运
+- **跨模块防撞**: 新增宏/类型前，扫描目标模块已有定义，禁止同名不同值
+- **elaco_main 不碰 HAL**: elaco_main.c 禁止直接 include HAL 头文件操作外设，必须通过 drv 层
+
+## 编译器标志（推荐）
+
+| 工具链 | 标志 | 作用 |
+|--------|------|------|
+| **GCC** | `-Wall -Wextra -Wpedantic` | 开启大部分警告 |
+| GCC | `-Werror` | 警告升错误（CI 环境强制） |
+| GCC | `-Wunused -Wconversion -Wsign-conversion` | 检测未使用变量/隐式类型转换 |
+| GCC | `-fstack-usage -Wstack-usage=256` | 检测栈使用超限 |
+| Keil | `--c99 --diag_warning=111,223` | 开启 C99 + 指定警告 |
+| Keil | `--diag_error=111,223,188` | 指定警告升错误 |
+
+**建议**：在项目 `CMakeLists.txt` 或 Keil 工程中启用以上标志。
+`/em verify` 时会自动检查这些标志是否已启用。
 
 ## 模块独立性（复用关键）
 
@@ -97,6 +125,7 @@
 - **移植**: 复制模块后只改 drv 区段的 HAL handle 和引脚
 - **跨模块引用**: 允许直接依赖，但必须在文件头注释加 `@ 依赖: 模块名`
 - **Keil 同步**: 新增 .c 文件后立即执行 `/em keil-config` 同步到工程
+- **文档同步**: 修改 CAN 协议相关代码后，必须同步更新 `Require/*.lnk` 指向的协议文档
 
 ## elaco_main.c 职责
 
@@ -146,3 +175,5 @@ void elaco_main(void)
 | drv 独立文件 | `ela_xxx_drv.c/h` 只含 HAL 操作 |
 | usr 独立文件 | `ela_xxx.c/h` 只含业务逻辑 |
 | 无 Magic Number | 数字常量必须宏定义 |
+| 文档同步 | 修改协议相关代码后，更新 `Require/*.lnk` 指向的文档 |
+| Keil 同步 | 新增 .c 文件后执行 `keil-config` |

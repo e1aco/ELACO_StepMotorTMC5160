@@ -17,7 +17,7 @@
  * @ 输出: TMC5160_CHIP_T*: 芯片指针，无效编号返回 NULL
  * @ 说明: 根据电机编号获取 TMC5160 芯片指针
  ********/
-static TMC5160_CHIP_T *get_chip(uint8_t motor)
+TMC5160_CHIP_T *ela_motor_ctrl_get_chip(uint8_t motor)
 {
     if (MOTOR_CTRL_U1 == motor)
     {
@@ -58,7 +58,7 @@ void ela_motor_ctrl_move_to(uint8_t motor, int32_t target)
     }
     else
     {
-        TMC5160_CHIP_T *chip = get_chip(motor);
+        TMC5160_CHIP_T *chip = ela_motor_ctrl_get_chip(motor);
         if ((void *)0 != chip)
         {
             ela_tmc5160_move_to(chip, target);
@@ -80,7 +80,7 @@ void ela_motor_ctrl_move_by(uint8_t motor, int32_t offset)
     }
     else
     {
-        TMC5160_CHIP_T *chip = get_chip(motor);
+        TMC5160_CHIP_T *chip = ela_motor_ctrl_get_chip(motor);
         if ((void *)0 != chip)
         {
             ela_tmc5160_move_by(chip, offset);
@@ -102,7 +102,7 @@ void ela_motor_ctrl_set_velocity(uint8_t motor, int32_t velocity)
     }
     else
     {
-        TMC5160_CHIP_T *chip = get_chip(motor);
+        TMC5160_CHIP_T *chip = ela_motor_ctrl_get_chip(motor);
         if ((void *)0 != chip)
         {
             ela_tmc5160_set_velocity(chip, velocity);
@@ -124,7 +124,7 @@ void ela_motor_ctrl_stop(uint8_t motor)
     }
     else
     {
-        TMC5160_CHIP_T *chip = get_chip(motor);
+        TMC5160_CHIP_T *chip = ela_motor_ctrl_get_chip(motor);
         if ((void *)0 != chip)
         {
             ela_tmc5160_stop(chip);
@@ -146,7 +146,7 @@ void ela_motor_ctrl_apply_profile(uint8_t motor, uint8_t group)
     }
     else
     {
-        TMC5160_CHIP_T *chip = get_chip(motor);
+        TMC5160_CHIP_T *chip = ela_motor_ctrl_get_chip(motor);
         if ((void *)0 != chip)
         {
             ela_tmc5160_apply_profile(chip, group);
@@ -161,7 +161,7 @@ void ela_motor_ctrl_apply_profile(uint8_t motor, uint8_t group)
  ********/
 int32_t ela_motor_ctrl_get_position(uint8_t motor)
 {
-    TMC5160_CHIP_T *chip = get_chip(motor);
+    TMC5160_CHIP_T *chip = ela_motor_ctrl_get_chip(motor);
 
     if ((void *)0 != chip)
     {
@@ -176,7 +176,7 @@ int32_t ela_motor_ctrl_get_position(uint8_t motor)
  ********/
 int32_t ela_motor_ctrl_get_encoder_position(uint8_t motor)
 {
-    TMC5160_CHIP_T *chip = get_chip(motor);
+    TMC5160_CHIP_T *chip = ela_motor_ctrl_get_chip(motor);
 
     if ((void *)0 != chip)
     {
@@ -192,7 +192,7 @@ int32_t ela_motor_ctrl_get_encoder_position(uint8_t motor)
  ********/
 int32_t ela_motor_ctrl_get_encoder_deviation(uint8_t motor)
 {
-    TMC5160_CHIP_T *chip = get_chip(motor);
+    TMC5160_CHIP_T *chip = ela_motor_ctrl_get_chip(motor);
 
     if ((void *)0 != chip)
     {
@@ -210,7 +210,7 @@ int32_t ela_motor_ctrl_get_encoder_deviation(uint8_t motor)
  ********/
 uint8_t ela_motor_ctrl_get_status(uint8_t motor)
 {
-    TMC5160_CHIP_T *chip = get_chip(motor);
+    TMC5160_CHIP_T *chip = ela_motor_ctrl_get_chip(motor);
 
     if ((void *)0 != chip)
     {
@@ -226,7 +226,7 @@ uint8_t ela_motor_ctrl_get_status(uint8_t motor)
  ********/
 uint8_t ela_motor_ctrl_get_stage(uint8_t motor)
 {
-    TMC5160_CHIP_T *chip = get_chip(motor);
+    TMC5160_CHIP_T *chip = ela_motor_ctrl_get_chip(motor);
 
     if ((void *)0 != chip)
     {

@@ -25,7 +25,58 @@
    - `state.md`: 当前步骤 → `S<N>` 🔄 验证中
    - `project-spec.md` 步骤表对应行状态同步
 5. **【生成 HVR】** 见下方「HVR 模板」
+
+5.5 **【编译时检查（编译器标志）】**（嵌入式项目且在并行执行通道启用前执行）
+
+   在编译前，先检查项目的编译器标志配置：
+
+   ```
+   ━━━ 编译器标志检查 ━━
+
+   A. GCC 标志检查（CMake 项目）
+      □ -Wall -Wextra ......... ✅ / ⚠️ 推荐添加
+      □ -Werror ............... ✅ / ⚠️ 推荐添加（警告升错误）
+      □ -Wunused ............. ✅ / ⚠️ 推荐添加
+      □ -Wconversion ......... ✅ / ⚠️ 推荐添加（检测隐式类型转换）
+
+   B. Keil 等效标志（Keil 项目）
+      □ --diag_warning ...... ✅ / ⚠️ 推荐添加
+      □ --diag_error ........ ✅ / ⚠️ 推荐添加
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ```
+
+   **产出**：结果写入 `<STATE_DIR>/checkpoints/compiler-flags_<step>.md`
+
+   > MISRA-C 子集检查已合并到 Agent-B（静态分析），不在本步骤重复执行。
+6. **【并行执行通道】**（deep 档 verify 时启用，子步骤验证可跳过）
+
+   以下三步**互不依赖**，通过子 Agent 并发执行：
+
+   ```
+   主 Agent: 分配 3 组并行任务
+     ├─ Agent-A: 编译（调用 build-dispatcher，自动识别工具链）
+     ├─ Agent-B: 静态分析（14 项规范检查 + MISRA-C 子集 + 编译警告检查）
+     └─ Agent-C: 回顾性代码审查（逻辑正确性 + 边界条件 + 资源竞争）
+   ```
+
+   各 Agent 独立写入对应文件：
+
+   ```
+   logs/build_<step>_<timestamp>.log      ← Agent-A
+   checkpoints/audit_<step>.md            ← Agent-B
+   checkpoints/review_<step>.md           ← Agent-C
+   ```
+
+   **汇总规则**：
+   - 三路完成 → 汇总到 HVR 的「自动化执行记录」区段
+   - 任一路失败 → 该路标记 ❌ + 错误摘要计入 HVR，**不阻断其他路**
+   - 全部失败或环境不支持并行 → 降级为串行
+
+   详见 `docs/subagent-principles.md`
+
 6. **【嵌入式注入】** 如 `type == "embedded"` → 加载 `plugins/embedded/workflows/verify-embedded.md` 执行编译/烧录/串口三连，结果记入 HVR 的「嵌入式执行记录」区段
+
+   > **并行兼容**：如果步骤 6 中 Agent-A（编译）已完成，此处**跳过编译**，直入烧录+串口。
 7. **【输出验证清单】** 列出待用户确认的检查点
 7.5 **【Keil 工程同步】**（Keil 项目且有新增 .c 文件时）
    - 扫描 `ELA_LIB/` 是否有**新增** `.c` 文件（对比 git 或当前会话记录）
@@ -37,6 +88,17 @@
        ✅ 无新增 .c 文件，跳过
        或
        ✅ ela_xxx.c  已添加到 .uvprojx ELA_LIB 组
+     ```
+7.6 **【文档同步检查】**（修改协议相关代码时）
+   - 检查本次修改是否涉及 CAN 协议、寄存器配置、接口定义等
+   - 涉及 → 同步更新 `Require/*.lnk` 指向的协议文档
+   - 不涉及 → 跳过
+   - 输出检查结果：
+     ```
+     📝 文档同步:
+       ✅ 无协议相关修改，跳过
+       或
+       ✅ ELACO_StepMotorTMC5160.md 已更新（新增命令码 0x07/0x08）
      ```
 8. **【提议 commit】** 见下方「commit 提议」
 

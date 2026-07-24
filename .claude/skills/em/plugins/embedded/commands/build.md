@@ -1,46 +1,69 @@
-# 编译 (build-keil)
+# 命令: /em build (编译)
 
 ## 功能
-调用 Keil UV4 编译工程固件
+调用项目的编译工具链编译固件。自动检测 Keil/CMake/GCC。
+
+## 触发
+```
+/em build                          # 自动检测工具链
+/em build --keil                   # 强制 Keil UV4
+/em build --cmake                  # 强制 CMake/GCC
+/em build detect                   # 只检测工具链，不编译
+```
 
 ## 调用方式
 
+### 方式1：自动检测（推荐）
 ```bash
-python EM-SKILL/plugins/embedded/tools/build-keil/scripts/keil_builder.py \
-  --project <工程文件> \
-  --target <目标名>
+python EM-SKILL/tools/build-dispatcher/scripts/builder.py \
+  --project <项目目录> \
+  --skill-dir EM-SKILL
 ```
+
+### 方式2：强制 Keil
+```bash
+python EM-SKILL/tools/build-dispatcher/scripts/builder.py \
+  --project <项目目录> \
+  --keil
+```
+
+### 方式3：强制 CMake/GCC
+```bash
+python EM-SKILL/tools/build-dispatcher/scripts/builder.py \
+  --project <项目目录> \
+  --cmake
+```
+
+## 工具链检测
+
+AI 调用 builder.py 检测当前项目：
+
+| 检测信号 | 判定工具链 |
+|---------|-----------|
+| `*.uvprojx` / `*.uvproj` | keil |
+| `CMakeLists.txt` | cmake |
+| `Makefile` + `arm-none-eabi-` | cmake |
+| `sdkconfig` | esp-idf（预留） |
+| `platformio.ini` | platformio（预留） |
 
 ## 参数来源
 
 | 参数 | 来源 |
 |------|------|
-| `--project` | 扫描工作区的 .uvprojx/.uvproj 文件 |
-| `--target` | 使用工程中第一个 Target，或由用户指定 |
-| UV4 路径 | 自动从 tool_config 读取（由 `/em initem` 注册） |
-
-## 检测工程
-
-AI 自动在工作区中查找 Keil 工程文件：
-
-```bash
-python -c "
-from pathlib import Path
-for p in Path('.').rglob('*.uvprojx'): print(p)
-for p in Path('.').rglob('*.uvproj'): print(p)
-"
-```
+| `--project` | 当前工作区目录 |
+| `--target` | 由 AI 根据项目设置确定 |
+| 工具链路径 | 由 `/em initem` 注册（Keil UV4 路径等） |
 
 ## 结果处理
 
-AI 从脚本 stdout 中提取以下字段记录到 HVR：
+AI 从 builder.py 输出中提取以下字段记录到 HVR：
 
 | 字段 | 作用 |
 |------|------|
 | 编译状态 | ✅ 成功 / ❌ 失败 |
+| 工具链 | keil / cmake / ... |
 | 错误数/警告数 | `错误: N  警告: N` |
-| 固件大小 | `Flash ≈ N KB  RAM ≈ N KB` |
-| 产物路径 | `产物: file.axf (N KB)` |
+| 产物路径 | `产物: file.elf (N KB)` |
 
 ## 自动决策
 
@@ -60,11 +83,13 @@ AI 按以下顺序连续执行：
 
 ## 常见错误
 
-- ❌ 未找到 .uvprojx/.uvproj 工程文件 → 确认工程文件路径
-- ❌ UV4 路径配置错误 → 运行 `/em initem` 重新配置
+- ❌ 未检测到工具链 → 运行 `/em build detect` 查看检测结果，或 `--keil` / `--cmake` 指定
+- ❌ 工具链路径错误 → 运行 `/em initem` 重新配置
 - ❌ 编译错误 → 显示错误行号和内容，分析原因
 
 ## 相关文件
-- `EM-SKILL/plugins/embedded/tools/build-keil/scripts/keil_builder.py` - 编译脚本
+- `EM-SKILL/tools/build-dispatcher/scripts/builder.py` - 统一编译入口
+- `EM-SKILL/tools/build-dispatcher/scripts/cmake_builder.py` - CMake/GCC 编译脚本
+- `EM-SKILL/plugins/embedded/tools/build-keil/scripts/keil_builder.py` - Keil 编译脚本（向后兼容）
 - `EM-SKILL/plugins/embedded/commands/flash.md` - 烧录说明
 - `EM-SKILL/plugins/embedded/commands/serial.md` - 串口监控说明

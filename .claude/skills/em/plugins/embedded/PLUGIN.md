@@ -22,7 +22,7 @@ provides:
       summary: 工具初始化（OpenOCD/Keil/串口路径注册）
     - name: build
       file: commands/build.md
-      summary: Keil 编译
+      summary: 编译（自动检测 Keil/CMake/GCC）
     - name: flash
       file: commands/flash.md
       summary: OpenOCD 烧录
@@ -45,6 +45,14 @@ provides:
       summary: 编译→烧录→串口三连子流程
 
   tools:
+    - name: build-dispatcher
+      path: tools/build-dispatcher/scripts/builder.py
+      kind: python
+      summary: 统一编译入口（自动检测 Keil/CMake/Makefile）
+    - name: build-cmake
+      path: tools/build-dispatcher/scripts/cmake_builder.py
+      kind: python
+      summary: CMake/GCC 编译脚本
     - name: build-keil
       path: tools/build-keil/scripts/keil_builder.py
       kind: python
@@ -134,7 +142,9 @@ keywords: 单片机 嵌入式 串口 烧录 编译 芯片学习
 
 | 工具 ID | 路径 | 用途 | 类型 |
 |---------|------|------|------|
+| `build-dispatcher` | `tools/build-dispatcher/scripts/builder.py` | 统一编译入口（自动检测 Keil/CMake/Makefile）| python |
 | `build-keil` | `tools/build-keil/scripts/keil_builder.py` | Keil 编译脚本 | python |
+| `build-cmake` | `tools/build-dispatcher/scripts/cmake_builder.py` | CMake/GCC 编译脚本 | python |
 | `flash-openocd` | `tools/flash-openocd/scripts/openocd_flasher.py` | OpenOCD 烧录脚本 | python |
 | `serial-monitor` | `tools/serial-monitor/scripts/serial_monitor.py` | 串口 CLI（自动化抓日志）| python |
 | `serial-mcp` | `tools/serial-mcp/` | 串口 GUI（tkinter + MCP）| mcp_server |

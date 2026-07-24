@@ -36,6 +36,10 @@
 "stepmotordriver_keil\ela_tmc5160_drv.o"
 "stepmotordriver_keil\ela_tmc5160_usr.o"
 "stepmotordriver_keil\ela_motor_ctrl.o"
+"stepmotordriver_keil\ela_pid.o"
+"stepmotordriver_keil\ela_closed_loop.o"
+"stepmotordriver_keil\ela_eeprom.o"
+"stepmotordriver_keil\ela_timer_drv.o"
 "stepmotordriver_keil\ela_tmc5160_test.o"
 --strict --scatter "StepMotorDriver_Keil\StepMotorDriver_Keil.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols

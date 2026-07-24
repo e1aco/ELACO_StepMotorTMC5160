@@ -9,6 +9,7 @@
 #include "ela_can_drv.h"
 #include "ela_queue.h"
 #include "ela_motor_ctrl.h"
+#include "ela_closed_loop.h"
 
 /* module hlp start */
 
@@ -180,6 +181,20 @@ void ela_can_usr_process(void)
 
     case CMD_PID_ADJUST:
         /* PID 调参 (暂未实现) */
+        break;
+
+    case CMD_CL_ENABLE:
+        /* 使能闭环控制 */
+        ela_closed_loop_enable(cmd.motor);
+        ela_can_usr_send_motion_feedback(
+            cmd.motor, 0, 0, 0);
+        break;
+
+    case CMD_CL_DISABLE:
+        /* 禁用闭环控制 */
+        ela_closed_loop_disable(cmd.motor);
+        ela_can_usr_send_motion_feedback(
+            cmd.motor, 0, 0, 0);
         break;
 
     default:
