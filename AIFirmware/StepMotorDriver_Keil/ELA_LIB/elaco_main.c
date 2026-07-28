@@ -46,7 +46,7 @@ void elaco_main(void)
     ela_motor_ctrl_init();
 		// 初始化PID
     ela_closed_loop_init();
-	
+
     /* 电机测试 (注释下面一行可跳过测试) */
     // ela_tmc5160_test_run();
 

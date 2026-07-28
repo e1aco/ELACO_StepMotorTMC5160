@@ -4,3 +4,4 @@ stepmotordriver_keil\ela_tmc5160_usr.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdi
 stepmotordriver_keil\ela_tmc5160_usr.o: ..\ELA_LIB\ela_tmc5160_drv.h
 stepmotordriver_keil\ela_tmc5160_usr.o: ..\ELA_LIB\ela_eeprom.h
 stepmotordriver_keil\ela_tmc5160_usr.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+stepmotordriver_keil\ela_tmc5160_usr.o: ..\ELA_LIB\ela_closed_loop.h

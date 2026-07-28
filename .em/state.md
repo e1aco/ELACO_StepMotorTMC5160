@@ -25,6 +25,29 @@
 | OpenOCD | tools/openocd/xpack-openocd-0.12.0-7/bin/openocd.exe |
 | arm-gcc | E:\STM32CubeCLT_1.21.0\GNU-tools-for-STM32\bin\arm-none-eabi-gcc.EXE |
 
+## 外设扫描 (ela si)
+| 外设 | 模块 | 说明 |
+|------|------|------|
+| SPI | ela_tmc5160_drv | TMC5160 通讯 |
+| CAN | ela_can_usr, ela_can_drv | CAN 收发 |
+| TIM | ela_timer_drv | 定时器 |
+| USART | usart.c | 串口 |
+| IWDG | iwdg.c | 独立看门狗 |
+| GPIO | gpio.c | 通用IO |
+| EEPROM | ela_eeprom | 存储 |
+
+## 核心模块
+- **ela_tmc5160_drv** — TMC5160 驱动层
+- **ela_tmc5160_usr** — TMC5160 用户层
+- **ela_can_usr** — CAN 用户协议
+- **ela_can_drv** — CAN 驱动层
+- **ela_motor_ctrl** — 电机控制
+- **ela_closed_loop** — 闭环控制
+- **ela_pid** — PID 调节
+- **ela_timer_drv** — 定时器驱动
+- **ela_eeprom** — EEPROM 操作
+- **elaco_main** — 主逻辑
+
 ## CAN协议
 - 接收 ID: 0x1AA55F42
 - 反馈 ID: 0x1AA55F43

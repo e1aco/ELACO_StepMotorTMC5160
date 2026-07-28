@@ -9,6 +9,7 @@
 #include "ela_tmc5160_usr.h"
 #include "ela_tmc5160_drv.h"
 #include "ela_eeprom.h"
+#include "ela_closed_loop.h"
 
 //----------------------------------------------------------------------------------
 /* tmc5160 寄存器地址 (usr 层只读常量) */
@@ -62,7 +63,8 @@ static uint8_t tmc5160_is_reg_valid(uint32_t reg_value)
 TMC5160_CHIP_T g_tmc5160_chip1_st;
 TMC5160_CHIP_T g_tmc5160_chip2_st;
 
-static uint8_t g_chip_dirty;
+/* 编码器零位偏移：上电时 X_ENC 的初始值，后续读数减去此值归零 */
+static int32_t g_enc_offset[2];static uint8_t g_chip_dirty;
 
 /****
  * @ 输入: 无
@@ -185,10 +187,14 @@ void ela_tmc5160_save_config(void)
 void ela_tmc5160_init(void)
 {
     uint8_t i;
+    uint32_t gstat;
     TMC5160_CHIP_T *chips[2] = {
         &g_tmc5160_chip1_st,
         &g_tmc5160_chip2_st
     };
+
+    /* 等待 TMC5160 上电稳定后再操作 SPI */
+    tmc5160_drv_delay_ms(50);
 
     for (i = 0; i < 2; i++)
     {
@@ -205,8 +211,18 @@ void ela_tmc5160_init(void)
         /* 使能电机驱动 */
         tmc5160_drv_enable(chip->chip_number);
 
-        /* 清除 Power-on 残留错误 */
+        /* 清除 Power-on 残留错误，同时验证 SPI 通信 */
         ela_tmc5160_write_reg(chip, REG_GSTAT, 0x07);
+        tmc5160_drv_delay_ms(1);
+        gstat = ela_tmc5160_read_reg(chip, REG_GSTAT);
+        if (0xFFFFFFFF == gstat || 0x00000000 == gstat)
+        {
+            /* SPI 通信异常，重试一次 */
+            tmc5160_drv_delay_ms(10);
+            ela_tmc5160_write_reg(chip, REG_GSTAT, 0x07);
+            tmc5160_drv_delay_ms(1);
+            gstat = ela_tmc5160_read_reg(chip, REG_GSTAT);
+        }
 
         /* 静音模式 (StealthChop) */
         ela_tmc5160_write_reg(chip, REG_GCONF, 0x04);
@@ -228,6 +244,12 @@ void ela_tmc5160_init(void)
 
     /* 等待 StealthChop PWM 校准稳定 */
     tmc5160_drv_delay_ms(100);
+
+    /* 记录编码器上电初始值，后续读数减去此偏移归零 */
+    g_enc_offset[0] = (int32_t)ela_tmc5160_read_reg(
+        &g_tmc5160_chip1_st, REG_X_ENC);
+    g_enc_offset[1] = (int32_t)ela_tmc5160_read_reg(
+        &g_tmc5160_chip2_st, REG_X_ENC);
 }
 
 /* ---- 寄存器读写 ---- */
@@ -521,8 +543,10 @@ void ela_tmc5160_config_encoder(TMC5160_CHIP_T *chip)
 int32_t ela_tmc5160_get_encoder_position(
     TMC5160_CHIP_T *chip)
 {
-    return (int32_t)ela_tmc5160_read_reg(
+    int32_t raw = (int32_t)ela_tmc5160_read_reg(
         chip, REG_X_ENC);
+    int32_t idx = (TMC5160_CHIP_1 == chip->chip_number) ? 0 : 1;
+    return raw - g_enc_offset[idx];
 }
 
 /****

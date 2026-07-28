@@ -8,6 +8,7 @@
  ********/
 #include "ela_motor_ctrl.h"
 #include "ela_tmc5160_usr.h"
+#include "ela_closed_loop.h"
 
 //----------------------------------------------------------------------------------
 /* motor ctrl hlp start */
@@ -54,7 +55,9 @@ void ela_motor_ctrl_move_to(uint8_t motor, int32_t target)
     if (MOTOR_CTRL_ALL == motor)
     {
         ela_tmc5160_move_to(&g_tmc5160_chip1_st, target);
+        ela_closed_loop_set_target(MOTOR_CTRL_U1, target);
         ela_tmc5160_move_to(&g_tmc5160_chip2_st, target);
+        ela_closed_loop_set_target(MOTOR_CTRL_U2, target);
     }
     else
     {
@@ -62,6 +65,7 @@ void ela_motor_ctrl_move_to(uint8_t motor, int32_t target)
         if ((void *)0 != chip)
         {
             ela_tmc5160_move_to(chip, target);
+            ela_closed_loop_set_target(motor, target);
         }
     }
 }
@@ -75,15 +79,21 @@ void ela_motor_ctrl_move_by(uint8_t motor, int32_t offset)
 {
     if (MOTOR_CTRL_ALL == motor)
     {
+        int32_t t1 = ela_tmc5160_get_position(&g_tmc5160_chip1_st) + offset;
+        int32_t t2 = ela_tmc5160_get_position(&g_tmc5160_chip2_st) + offset;
         ela_tmc5160_move_by(&g_tmc5160_chip1_st, offset);
+        ela_closed_loop_set_target(MOTOR_CTRL_U1, t1);
         ela_tmc5160_move_by(&g_tmc5160_chip2_st, offset);
+        ela_closed_loop_set_target(MOTOR_CTRL_U2, t2);
     }
     else
     {
         TMC5160_CHIP_T *chip = ela_motor_ctrl_get_chip(motor);
         if ((void *)0 != chip)
         {
+            int32_t final = ela_tmc5160_get_position(chip) + offset;
             ela_tmc5160_move_by(chip, offset);
+            ela_closed_loop_set_target(motor, final);
         }
     }
 }
@@ -119,15 +129,21 @@ void ela_motor_ctrl_stop(uint8_t motor)
 {
     if (MOTOR_CTRL_ALL == motor)
     {
+        int32_t p1 = ela_tmc5160_get_position(&g_tmc5160_chip1_st);
+        int32_t p2 = ela_tmc5160_get_position(&g_tmc5160_chip2_st);
         ela_tmc5160_stop(&g_tmc5160_chip1_st);
+        ela_closed_loop_set_target(MOTOR_CTRL_U1, p1);
         ela_tmc5160_stop(&g_tmc5160_chip2_st);
+        ela_closed_loop_set_target(MOTOR_CTRL_U2, p2);
     }
     else
     {
         TMC5160_CHIP_T *chip = ela_motor_ctrl_get_chip(motor);
         if ((void *)0 != chip)
         {
+            int32_t pos = ela_tmc5160_get_position(chip);
             ela_tmc5160_stop(chip);
+            ela_closed_loop_set_target(motor, pos);
         }
     }
 }

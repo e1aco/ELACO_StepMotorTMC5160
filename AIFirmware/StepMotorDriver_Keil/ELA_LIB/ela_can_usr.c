@@ -114,7 +114,7 @@ void ela_can_usr_process(void)
     case CMD_ABS_POS:
     {
 				// 获取编码器偏差
-        int32_t dev = ela_motor_ctrl_get_encoder_deviation(cmd.motor);
+        int32_t dev = ela_motor_ctrl_get_encoder_position(cmd.motor);
 				// 获取状态
         uint8_t status = ela_motor_ctrl_get_status(cmd.motor);
 				// 获取运动状态
@@ -131,7 +131,7 @@ void ela_can_usr_process(void)
 
     case CMD_REL_CW:
     {
-        int32_t dev = ela_motor_ctrl_get_encoder_deviation(cmd.motor);
+        int32_t dev = ela_motor_ctrl_get_encoder_position(cmd.motor);
         uint8_t status = ela_motor_ctrl_get_status(cmd.motor);
         uint8_t stage = ela_motor_ctrl_get_stage(cmd.motor);
 
@@ -144,7 +144,7 @@ void ela_can_usr_process(void)
 
     case CMD_REL_CCW:
     {
-        int32_t dev = ela_motor_ctrl_get_encoder_deviation(cmd.motor);
+        int32_t dev = ela_motor_ctrl_get_encoder_position(cmd.motor);
         uint8_t status = ela_motor_ctrl_get_status(cmd.motor);
         uint8_t stage = ela_motor_ctrl_get_stage(cmd.motor);
 
@@ -157,7 +157,7 @@ void ela_can_usr_process(void)
 
     case CMD_VELOCITY:
     {
-        int32_t dev = ela_motor_ctrl_get_encoder_deviation(cmd.motor);
+        int32_t dev = ela_motor_ctrl_get_encoder_position(cmd.motor);
         uint8_t status = ela_motor_ctrl_get_status(cmd.motor);
         uint8_t stage = ela_motor_ctrl_get_stage(cmd.motor);
 
@@ -170,7 +170,7 @@ void ela_can_usr_process(void)
 
     case CMD_STOP:
     {
-        int32_t dev = ela_motor_ctrl_get_encoder_deviation(cmd.motor);
+        int32_t dev = ela_motor_ctrl_get_encoder_position(cmd.motor);
         uint8_t status = ela_motor_ctrl_get_status(cmd.motor);
 
         ela_motor_ctrl_stop(cmd.motor);
@@ -203,20 +203,20 @@ void ela_can_usr_process(void)
 }
 
 /****
- * @ 输入: motor: 电机选择; dev: 偏差值; status: 状态标志; stage: 运动阶段
+ * @ 输入: motor: 电机选择; pos: 编码器实际位置 (X_ENC); status: 状态标志; stage: 运动阶段
  * @ 输出: uint8_t: 0=成功, 1=发送失败
  * @ 说明: 发送运动反馈帧 (ID: 0x1AA55F43)
- *   byte[0-3]: 偏差值 (X_ENC - XACTUAL)
+ *   byte[0-3]: 编码器实际位置 (X_ENC)
  *   byte[4]: 状态标志位
  *   byte[5]: 电机选择
  *   byte[6]: 运动阶段
  *   byte[7]: 校验和
  ********/
-uint8_t ela_can_usr_send_motion_feedback(uint8_t motor, int32_t dev, uint8_t status, uint8_t stage)
+uint8_t ela_can_usr_send_motion_feedback(uint8_t motor, int32_t pos, uint8_t status, uint8_t stage)
 {
     uint8_t tx_data[8];
 
-    int32_to_bytes(dev, &tx_data[0]);
+    int32_to_bytes(pos, &tx_data[0]);
     tx_data[4] = status;
     tx_data[5] = motor;
     tx_data[6] = stage;

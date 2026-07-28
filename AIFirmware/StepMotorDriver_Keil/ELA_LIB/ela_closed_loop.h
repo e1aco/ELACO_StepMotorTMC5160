@@ -19,5 +19,6 @@ void ela_closed_loop_enable(uint8_t motor);
 void ela_closed_loop_disable(uint8_t motor);
 void ela_closed_loop_tick(uint8_t motor);
 uint8_t ela_closed_loop_get_mode(uint8_t motor);
+void ela_closed_loop_set_target(uint8_t motor, int32_t target);
 
 #endif
