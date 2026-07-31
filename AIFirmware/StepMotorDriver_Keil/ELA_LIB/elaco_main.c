@@ -14,6 +14,7 @@
 #include "ela_closed_loop.h"
 #include "iwdg.h"
 #include "ela_tmc5160_test.h"
+#include "ela_eeprom_test.h"
 #include "tim.h"
 /* module hlp start */
 
@@ -47,8 +48,11 @@ void elaco_main(void)
 		// 初始化PID
     ela_closed_loop_init();
 
-    /* 电机测试 (注释下面一行可跳过测试) */
+    /* 电机测试 (注释下面内容可跳过测试) */
     // ela_tmc5160_test_run();
+
+    /* EEPROM 测试 (注释下面内容可跳过测试) */
+    ela_eeprom_test_run();
 
     /* 主循环 */
     while (1)

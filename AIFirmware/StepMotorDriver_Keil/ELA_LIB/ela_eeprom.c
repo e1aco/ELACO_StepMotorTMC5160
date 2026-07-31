@@ -203,7 +203,7 @@ void ela_eeprom_write(uint32_t addr, EEPROM_BLOCK_T *block,
 /****
  * @ 输入: EEPROM_BLOCK_T *block: 存储块
  * @ 输出: bool - 是否有效（已写入过数据）
- * @ 说明: 检查存储块是否有效
+ * @ 说明: 检查存储块是否有效，1不通过，0通过
  ********/
 bool ela_eeprom_valid(EEPROM_BLOCK_T *block)
 {
