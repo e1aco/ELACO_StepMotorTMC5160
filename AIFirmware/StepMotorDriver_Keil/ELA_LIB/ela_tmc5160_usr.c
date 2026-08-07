@@ -18,6 +18,8 @@
 #define REG_GSTAT          0x01
 #define REG_IHOLD_IRUN     0x10
 #define REG_TPOWERDOWN     0x11
+#define REG_TCOOLTHRS      0x14
+#define REG_COOLCONF       0x6D
 #define REG_RAMPMODE       0x20
 #define REG_XACTUAL        0x21
 #define REG_VSTART         0x23
@@ -46,10 +48,12 @@
  * @ 输入: reg_value: 读取到的寄存器值
  * @ 输出: 0=有效, 1=无效
  * @ 说明: 校验 SPI 读取结果是否有效
+ *   仅 0xFFFFFFFF 视为无效(SPI 读失败哨兵),
+ *   0 是 GSTAT 等寄存器的正常值, 不可误判
  ********/
 static uint8_t tmc5160_is_reg_valid(uint32_t reg_value)
 {
-    if (0xFFFFFFFF == reg_value || 0x00000000 == reg_value)
+    if (0xFFFFFFFF == reg_value)
     {
         return 1;
     }
@@ -235,11 +239,25 @@ void ela_tmc5160_init(void)
         /* 编码器配置 */
         ela_tmc5160_config_encoder(chip);
 
-        /* 电机电流: IHOLD=4, IRUN=10, IHOLDDELAY=6
-         * RS=0.05R → I_full ≈ 203mA
-         * 保持电流 ≈ 26mA, 运行电流 ≈ 65mA */
+        /* 电机电流: IHOLD=1, IRUN=10, IHOLDDELAY=6
+         * RS=0.05R → IRUN=10  ≈ 1.56A RMS (峰值 2.2A)
+         * IHOLD=1   ≈ 0.16A RMS (待机降流, 发热 ~15x 降低)
+         * 静止约 873ms(TPOWERDOWN=40) 后自动降到 IHOLD */
         ela_tmc5160_write_reg(chip, REG_IHOLD_IRUN,
-                              (4 << 16) | (10 << 8) | 6);
+                              (1 << 16) | (10 << 8) | 6);
+
+        /* 静止降流延迟: 2^18 tCLK 单位, 40 ≈ 873ms
+         * 需 >=2 保证 StealthChop PWM 自动调校正常 */
+        ela_tmc5160_write_reg(chip, REG_TPOWERDOWN, 40);
+
+        /* CoolStep 关闭: 保持全速段 StealthChop 静音
+         * 原 COOLCONF=0xA011/TCOOLTHRS=2000 会在 >10RPM 强制切
+         * spreadCycle(噪声大), 且代码注释方向写反(见 ADR-003 修订)
+         * 待机降流由 IHOLD+TPOWERDOWN 承担, 无需 CoolStep */
+        ela_tmc5160_write_reg(chip, REG_COOLCONF, 0x0000);
+
+        /* CoolStep 速度窗口: 0 = 关闭(全速段 StealthChop) */
+        ela_tmc5160_write_reg(chip, REG_TCOOLTHRS, 0);
     }
 
     /* 等待 StealthChop PWM 校准稳定 */

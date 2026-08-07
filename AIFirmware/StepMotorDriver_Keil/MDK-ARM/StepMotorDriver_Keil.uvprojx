@@ -555,6 +555,11 @@
           <GroupName>ELA_LIB</GroupName>
           <Files>
             <File>
+              <FileName>require.md</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ELA_LIB\require.md</FilePath>
+            </File>
+            <File>
               <FileName>elaco_main.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\ELA_LIB\elaco_main.c</FilePath>

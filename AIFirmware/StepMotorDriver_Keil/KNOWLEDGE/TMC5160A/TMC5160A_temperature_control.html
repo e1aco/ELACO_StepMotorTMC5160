@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TMC5160A 温度控制 · 软硬件手册要点与缺陷排查</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --card:#ffffff; --ink:#1f2733; --muted:#60708a;
+    --line:#e3e8f0; --brand:#0f6db3; --accent:#b45309; --danger:#b91c1c;
+    --ok:#15803d; --chipbg:#eef3f8; --code:#0d3f66;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
+  header.hero{background:linear-gradient(135deg,#0f6db3,#14507a);color:#fff;border-radius:16px;padding:28px 32px;margin-bottom:22px}
+  header.hero h1{margin:0 0 6px;font-size:26px}
+  header.hero p{margin:0;opacity:.9;font-size:14px}
+  .badge{display:inline-block;background:rgba(255,255,255,.18);border-radius:20px;padding:3px 12px;font-size:12px;margin:0 4px 4px 0}
+  .toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin-bottom:22px}
+  .toc h2{margin:0 0 10px;font-size:16px}
+  .toc a{color:var(--brand);text-decoration:none;display:inline-block;margin-right:16px;font-size:13px}
+  .toc a:hover{text-decoration:underline}
+  section.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 26px;margin-bottom:18px}
+  h2.sec{font-size:20px;margin:0 0 14px;padding-bottom:10px;border-bottom:2px solid var(--brand)}
+  h3{font-size:16px;margin:20px 0 8px;color:var(--brand)}
+  table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:13.5px;background:#fff}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--chipbg);color:var(--code);white-space:nowrap}
+  tr:nth-child(even) td{background:#fafbfd}
+  .note{border-left:4px solid var(--brand);background:var(--chipbg);padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0;font-size:13.5px}
+  .warn{border-left:4px solid var(--accent);background:#fdf6ec;padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0;font-size:13.5px}
+  .danger{border-left:4px solid var(--danger);background:#fdeeee;padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0;font-size:13.5px}
+  .ok{border-left:4px solid var(--ok);background:#eefaf3;padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0;font-size:13.5px}
+  code{font-family:Consolas,"Courier New",monospace;background:#eef1f5;color:var(--code);border-radius:4px;padding:1px 5px;font-size:12.5px}
+  ol,ul{margin:8px 0 12px;padding-left:22px}
+  .tag{display:inline-block;border-radius:4px;padding:0 6px;font-size:11.5px;font-weight:700;vertical-align:middle}
+  .tag.hw{background:#e0ecff;color:#14507a}
+  .tag.sw{background:#e6f7e6;color:#14571a}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:30px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>TMC5160A 温度控制 · 软硬件要点与缺陷排查</h1>
+  <p>依据 <b>TMC5160A Datasheet Rev.1.14</b>（英文权威）+ Rev.1.13（中文对照）整理。聚焦手册中与“温度控制 / 发热抑制 / 过热保护”相关的软硬件章节，并给出面向当前工程（STM32 + TMC5160 驱动）的缺陷排查清单。</p>
+  <span class="badge">第 11 章 诊断与保护</span>
+  <span class="badge">DRV_STATUS 寄存器</span>
+  <span class="badge">第 28.3 节 热特性</span>
+  <span class="badge">过温保护 / 电流降额</span>
+</header>
+
+<nav class="toc">
+  <h2>目录</h2>
+  <a href="#src">1. 手册相关章节定位</a>
+  <a href="#sw">2. 软件层：温度感知与保护</a>
+  <a href="#hw">3. 硬件层：发热抑制与散热</a>
+  <a href="#config">4. 关键寄存器速查</a>
+  <a href="#audit">5. 当前工程缺陷排查</a>
+  <a href="#checklist">6. 设计落地清单</a>
+</nav>
+
+<!-- ============ 1. 章节定位 ============ -->
+<section class="card" id="src">
+  <h2 class="sec">1. 手册相关章节定位</h2>
+  <p>手册中与“温度控制 / 改善发热 / 温度保护”直接相关的段落高度分散，集中在<b>诊断与保护</b>、<b>驱动器状态</b>、<b>热特性</b>、<b>负载自适应电流</b> 四处。定位如下（页码为英文版 Rev.1.14）：</p>
+  <table>
+    <tr><th>章节</th><th>标题</th><th>类型</th><th>关键内容</th></tr>
+    <tr><td>11.1</td><td>Temperature Sensors（温度传感器）</td><td><span class="tag hw">硬</span><span class="tag sw">软</span></td><td>四级温度传感器：120°C 预警告 + 可选 136/143/150°C 热关断；保护 IC / 功率 MOSFET / 邻近器件</td></tr>
+    <tr><td>6.5.5</td><td>DRV_STATUS（驱动状态寄存器）</td><td><span class="tag sw">软</span></td><td>位25 <code>otpw</code> 预警告、位26 <code>ot</code> 过温关断；静止时 SG_RESULT 可作电机温度趋势估算</td></tr>
+    <tr><td>28.3</td><td>Thermal Characteristics（热特性）</td><td><span class="tag hw">硬</span></td><td>典型耗散 0.6W；结-环境 RthJA=21 K/W、结-板 RthJB=8、结-壳 RthJC=3（TQFP48-EP）</td></tr>
+    <tr><td>28.1</td><td>探测电平（直流特性表）</td><td><span class="tag hw">硬</span></td><td>TOTPW 典型 120°C；热关断 136 / 143 / 150°C</td></tr>
+    <tr><td>1.5 / 6.7</td><td>静止态自动降电流 / 空转与被动制动</td><td><span class="tag sw">软</span></td><td>IHOLD + TPOWERDOWN 静止降流，减轻待机发热</td></tr>
+    <tr><td>13</td><td>CoolStep（负载自适应电流控制）</td><td><span class="tag sw">软</span></td><td>按负载实时缩放相电流，低/空载工况大幅降耗与降热</td></tr>
+    <tr><td>27.x</td><td>布线考虑：底部焊盘 / 地 / 桥臂电压 / 供电滤波</td><td><span class="tag hw">硬</span></td><td>散热焊盘、地平面、铺铜厚度直接影响 RthJA 与热扩散</td></tr>
+  </table>
+  <div class="note"><b>总原则（手册原文）</b>：散热主要由功率 MOSFET 产生，且随电源电压升高，内部线性稳压器也会累积热量。手册特别强调——<i>“热关断只是应急措施，温度上升到关断值应通过设计来阻止”</i>：即必须<b>主动抑制发热 + 逐级预警</b>，而非依赖最后一道硬关断。</div>
+</section>
+
+<!-- ============ 2. 软件层 ============ -->
+<section class="card" id="sw">
+  <h2 class="sec">2. 软件层：温度感知与保护</h2>
+
+  <h3>2.1 温度感知来源</h3>
+  <p>TMC5160 <b>片上集成温度传感器</b>，无需外部 NTC 也可保护芯片/MOSFET，共四级：</p>
+  <ul>
+    <li><b>预警告 OTPW</b>（典型 120°C，上升沿范围 100–140°C）—— 芯片仍正常工作，仅置 <code>DRV_STATUS.otpw=1</code>，用于提示“异常工况”并触发用户降流/告警。</li>
+    <li><b>热关断 OT</b>（可选 136°C / 143°C / 150°C）—— 达到即<b>两个桥的功率驱动器被关闭</b>，置 <code>DRV_STATUS.ot=1</code>。</li>
+    <li><b>自恢复逻辑</b>：发生 <code>ot</code> 后，驱动器持续闭锁，<b>直到系统温度回落到预警告电平（otpw）以下</b>才允许重新导通，避免“反复加热到关断点”的振荡。</li>
+  </ul>
+  <div class="warn"><b>软件下游要点</b>：<code>ot</code> 关断后芯片<b>不会自动重新开启</b>，必须由软件先失能（TOFF=0 或 ENN）再重新使能才能恢复。务必设计“状态上锁 + 手动/自动解锁”流程。</div>
+
+  <h3>2.2 软件读取 / 判断温度故障</h3>
+  <table>
+    <tr><th>寄存器</th><th>位</th><th>含义</th><th>软件动作</th></tr>
+    <tr><td>DRV_STATUS (0x6F)</td><td>bit25 <code>otpw</code></td><td>过温预警告阈值已超出（两个桥共用）</td><td>可单独读取，触发降流 / 限速 / 用户告警</td></tr>
+    <tr><td>DRV_STATUS (0x6F)</td><td>bit26 <code>ot</code></td><td>过温关断已触发，驱动被失能（两桥共用）</td><td>置故障态；需失能再重新使能方可恢复</td></tr>
+    <tr><td>DRV_STATUS (0x6F)</td><td>bit[9:3] <code>SG_RESULT</code></td><td>静止时＝线圈 A 斩波导通时间</td><td>持续读取可估<b>电机</b>温度趋势（见 2.3）</td></tr>
+    <tr><td>GSTAT (0x01)</td><td>bit1 <code>drv_err</code></td><td>驱动错误汇总（含过流/过温等）</td><td>读后需写 1 清除</td></tr>
+  </table>
+
+  <h3>2.3 用 SG_RESULT 估算电机温度（软件技巧）</h3>
+  <div class="ok">手册 6.5.5 说明：静止时无 StallGuard2 结果，此时 <code>SG_RESULT</code> 报告的是<b>线圈 A 的斩波导通时间</b>。由于铜线电阻随温度升高而增大，<b>导通时间随之上升</b>——在静止下按固定微步位置、固定电流设定测量导通时间，即可<b>粗略单调估计电机绕组温度趋势</b>（非绝对温度，需标定）。</div>
+
+  <h3>2.4 软件层可用的“主动降热”手段（手册推荐）</h3>
+  <ol>
+    <li><b>静态降流（IHOLD + TPOWERDOWN）</b>：静止超过 <code>TPOWERDOWN</code> 后自动切到保持电流 <code>IHOLD</code>（低于运行电流 <code>IRUN</code>），大幅降低待机发热。</li>
+    <li><b>CoolStep（负载自适应电流）</b>：中/空载时按 <code>COOLCONF</code> 的阈值与降比（SEIMIN/SEUP/SEDN/SEMAX）实时缩放相电流，负载降低则发热下降。适用于 SpredCycle / DcStep 等电流模式区段。</li>
+    <li><b>StealthChop 电压 PWM</b>：低速与静止下使用 StealthChop，静音且发热温和，配合上电电流更低的静止态。</li>
+    <li><b>过温主动降流预案</b>：检测到 <code>otpw</code> 时，处理器主动下调 <code>IRUN/IHOLD</code> 或进入“限速/低功耗档”，把系统阻止在 <code>ot</code> 硬关断之前——这是手册“用设计避免温度关断”的直接实现。</li>
+  </ol>
+  <div class="warn"><b>设计提示</b>：主动降流应做成“档位 + 去抖 + 滞环恢复”：
+<code>otpw 触发 → 降流至 50~70% 或限速 → 温度回落（滞环）→ 逐档恢复；若仍升温 → ot 硬关断</code>。不要仅凭单次 otpw 立即动作，需配合连续采样时间窗去抖。</div>
+</section>
+
+<!-- ============ 3. 硬件层 ============ -->
+<section class="card" id="hw">
+  <h2 class="sec">3. 硬件层：发热、散热与热保护</h2>
+
+  <h3>3.1 热源与量化（手册 28.3 热特性）</h3>
+  <p>手册给出 TQFP48-EP 封装在“双外信号层 + 两层内电平面（2s2p）JEDEC 测试板”下的参考热阻，真实值随 PCB 布局 / 板材 / 尺寸变化：</p>
+  <table>
+    <tr><th>参数</th><th>符号</th><th>典型值</th><th>说明</th></tr>
+    <tr><td>典型耗散</td><td>P<sub>D</sub></td><td><b>0.6 W</b></td><td>StealthChop 或 SpreadCycle，40/20kHz 斩波，24V，含内部稳压器</td></tr>
+    <tr><td>结–环境热阻</td><td>R<sub>thJA</sub></td><td>21 K/W</td><td>多层 2S2P 板（JEDEC 条件）</td></tr>
+    <tr><td>结–板热阻</td><td>R<sub>thJB</sub></td><td>8 K/W</td><td>距封装引脚 1mm 内 PCB 温度</td></tr>
+    <tr><td>结–壳热阻</td><td>R<sub>thJC</sub></td><td>3 K/W</td><td>结温到封装底部散热焊盘</td></tr>
+  </table>
+  <div class="note"><b>推算思路</b>：结温 ≈ 环境温度 + P<sub>D</sub> × R<sub>thJA</sub>。手册示例 24V · 0.6W · RthJA=21 → 结温比环境高约 12.6°C。若您的电机电源电压更高、电流更大、或 PCB 铜薄/面积小，RthJA 会明显上升，<b>务必用 <code>DRV_STATUS.otpw/ot</code> 实测验证</b>，不要照抄典型值。</div>
+  <div class="ok"><b>手册实操标定</b>：不接电机仅上电，电源输入消耗的功率全部视为片内耗散，用此方法可现场估算实际热阻（无负载待机功率法）。</div>
+
+  <h3>3.2 硬件保护阈值（28.1 直流特性表）</h3>
+  <table>
+    <tr><th>参数</th><th>符号</th><th>Min</th><th>Typ</th><th>Max</th><th>单位</th></tr>
+    <tr><td>过温预警告（温度上升沿）</td><td>T<sub>OTPW</sub></td><td>100</td><td>120</td><td>140</td><td>°C</td></tr>
+    <tr><td>过温关断 136°C 档</td><td>T<sub>OT136</sub></td><td>—</td><td>136</td><td>—</td><td>°C</td></tr>
+    <tr><td>过温关断 143°C 档</td><td>T<sub>OT143</sub></td><td>—</td><td>143</td><td>—</td><td>°C</td></tr>
+    <tr><td>过温关断 150°C 档</td><td>T<sub>OT150</sub></td><td>135</td><td>150</td><td>170</td><td>°C</td></tr>
+  </table>
+  <div class="warn"><b>选档建议</b>：3 档（136/143/150°C）可编程选择。若散热条件差或环境温度高，选更高档（143/150°C）能避免误关断，但<b>必须配合主动降流</b>，否则触发时结温可能已非常接近 MOSFET 极限。</div>
+
+  <h3>3.3 硬件散热设计（手册第 27 章布线考虑）</h3>
+  <ul>
+    <li><b>底部热焊盘</b>：TQFP48-EP / QFN-WA 底部暴露焊盘必须<b>良好焊接</b>并直接连接大面积的 GND 平面，作为主要散热通道。</li>
+    <li><b>地布线 / 地平面</b>：尽量整平面地，提供低阻低热阻路径；多层板内层铜越厚，水平热扩散越好。</li>
+    <li><b>桥臂电压与供电滤波</b>：VM 走线尽量宽，去耦电容就近布在 VM 与 GND 之间，减小开关损耗。</li>
+    <li><b>空气对流</b>：手册明确空气流动可降低热阻；外壳与风道设计应对 MOSFET 与芯片有利。</li>
+    <li><b>MOSFET 选型与斜率</b>（3.3 / 3.4 节）：合理选型与斩波斜率可减少交叉导通损耗 → 减少热源。</li>
+    <li><b>内部稳压器热量</b>：电源电压越高，内部线性稳压耗散越大，需纳入芯片自身热预算。</li>
+  </ul>
+</section>
+
+<!-- ============ 4. 关键寄存器速查 ============ -->
+<section class="card" id="config">
+  <h2 class="sec">4. 关键寄存器速查（温度控制）</h2>
+  <table>
+    <tr><th>寄存器（地址）</th><th>字段 / 位</th><th>作用</th></tr>
+    <tr><td rowspan="3">DRV_STATUS (0x6F)</td><td>bit26 <code>ot</code></td><td>过温关断已触发（两桥均失能）</td></tr>
+    <tr><td>bit25 <code>otpw</code></td><td>过温预警告已触发（软件应作预警/降流）</td></tr>
+    <tr><td>bit[9:3] <code>SG_RESULT</code></td><td>静止＝线圈 A 导通时间（可估电机温度）；运动＝StallGuard2 载荷</td></tr>
+    <tr><td>GSTAT (0x01)</td><td>bit1 <code>drv_err</code></td><td>驱动错误汇总，读后写 1 清除</td></tr>
+    <tr><td>IHOLD_IRUN (0x10)</td><td>IHOLD / IRUN / IHOLDDELAY</td><td>保持与运行电流；静止自动降流到 IHOLD</td></tr>
+    <tr><td>TPOWERDOWN (0x11)</td><td>—</td><td>静止多久后切换到保持电流</td></tr>
+    <tr><td>COOLCONF (0x6D)</td><td>SEIMIN/SEUP/SEDN/SEMAX/SEEN</td><td>CoolStep 负载自适应电流缩放（低载自动降流）</td></tr>
+    <tr><td>PWMCONF (0x70)</td><td>—</td><td>StealthChop 电压 PWM 配置（低噪、静置）</td></tr>
+    <tr><td>GCONF (0x00)</td><td>—</td><td>全局配置，含与模式/保护相关的选项</td></tr>
+  </table>
+  <div class="note">字段位宽与偏移以数据手册为准；固件中寄存器定义与封装见 <code>ELA_LIB/ela_tmc5160_drv.h</code>。</div>
+</section>
+
+<!-- ============ 5. 缺陷排查 ============ -->
+<section class="card" id="audit">
+  <h2 class="sec">5. 当前工程缺陷排查</h2>
+  <p>对照当前固件（<code>ELA_LIB/ela_tmc5160_usr.c</code> 等）与手册要点逐项自查：</p>
+
+  <table>
+    <tr><th>类别</th><th>排查项</th><th>依据（手册）</th><th>结论 / 处置建议</th></tr>
+    <tr>
+      <td rowspan="2">软件保护</td>
+      <td>（1）温度级别不区分<br>代码把 <code>DRV_STATUS.bit26|bit25</code> 合并成一个 <code>STATUS_OTW</code> 位。</td>
+      <td>手册区分 <code>otpw</code>（预警告，可恢复、可主动降流）与 <code>ot</code>（硬关断、已失能）。</td>
+      <td><b>缺陷</b>：两阶段合并，软件无法区分“可干预的预警告”与“已关断的硬故障”，只能被动置危险位，无法做主动降流。</td>
+    </tr>
+    <tr>
+      <td>（2）缺少主动降流预案</td>
+      <td>手册要求“温度上升到关断应通过设计避免”；otpw 应触发降流/限速。</td>
+      <td><b>风险</b>：<code>ela_tmc5160_get_status_flags</code> 目前仅置标志位，未见 otpw 触发的电流/速率降级逻辑；建议增加“档位 + 滞环恢复”。</td>
+    </tr>
+    <tr>
+      <td rowspan="2">恢复逻辑</td>
+      <td>（3）<code>ot</code> 后的恢复流程</td>
+      <td>ot 后芯片失能，需“先失能再重新使能”，且待温度低于 otpw 才自动恢复。</td>
+      <td><b>风险</b>：需确认是否有“ot 后自动解锁”与“温度低于 OTPW”的重试门控；缺失可能让驱动锁死。</td>
+    </tr>
+    <tr>
+      <td>（4）SPI 通讯失败的温判</td>
+      <td>温度读取依赖 SPI；SPI 异常时不可误判为正常。</td>
+      <td>已把 SPI 异常单列为 bit4，处理合理；但注意 <code>tmc5160_is_reg_valid</code> 的判定，防止有效值掩码掩盖真实的 otpw/ot。</td>
+    </tr>
+    <tr>
+      <td rowspan="3">硬件散热</td>
+      <td>（5）热焊盘 / 热阻裕量</td>
+      <td>RthJA=21 K/W 为 JEDEC 4 层条件，实际取决于 PCB。</td>
+      <td>需实测：若板层少、铜箔薄、无通风，结温会明显高于推算；建议用“断电、无电机、P_D=片耗散”法实测 RthJA。</td>
+    </tr>
+    <tr>
+      <td>（6）电源电压 / 内部稳压器</td>
+      <td>电压越高内调耗散越大（P<sub>D</sub> 含内部稳压器）。</td>
+      <td>若电源接近或超过 52V，需复核 <code>S2G_LEVEL</code>，避免热环境叠加误触发短路保护。</td>
+    </tr>
+    <tr>
+      <td>（7）MOSFET 选型 / 斩波斜率</td>
+      <td>第 3.3 / 3.4 节：斜率不匹配增加开关损耗。</td>
+      <td>检查 MOSFET 与斜率（TBL/TOFF）配置是否匹配，以及 MOSFET 自身的散热手段。</td>
+    </tr>
+    <tr>
+      <td rowspan="2">运行工况</td>
+      <td>（8）静止是否降流</td>
+      <td>IHOLD + TPOWERDOWN 引入静止降流，显著减少待机热。</td>
+      <td>确认已配置 IHOLD（低于 IRUN）与 TPOWERDOWN；否则长时间静止保持运行电流会持续发热。</td>
+    </tr>
+    <tr>
+      <td>（9）中空载是否开 CoolStep</td>
+      <td>CoolStep 可按负载自动降流。</td>
+      <td><b>风险</b>：当前固件 <code>REG_COOLCONF=0x0000</code>（主动关闭以保全速 StealthChop 静音）；低载/空转发热超标时可评估开启 CoolStep 或下调 IRUN。</td>
+    </tr>
+  </table>
+
+  <div class="danger"><b>最高优先建议</b>：在软件中把 <code>otpw</code>（预警告）与 <code>ot</code>（关断）<b>拆分为两个状态</b>；<code>otpw</code> 触发即执行降档（下调 IRUN/IHOLD 或限速），并带“温度滞环 + 采样时间窗”去抖恢复，从而把系统阻止在硬关断之前——这正是手册“温度关断只应应急、应通过设计避免”的核心。</div>
+</section>
+
+<!-- ============ 6. 设计落地清单 ============ -->
+<section class="card" id="checklist">
+  <h2 class="sec">6. 设计落地清单（对照自查）</h2>
+  <ol>
+    <li>□ 已识别并分别处理 <code>otpw</code> 与 <code>ot</code> 两个标志。</li>
+    <li>□ <code>otpw</code> 有自动降流 / 限速预案（多档 + 去抖 + 滞环恢复）。</li>
+    <li>□ <code>ot</code> 硬关断后，有“状态上锁 → 温度低于 otpw → 自动/手动解锁恢复”流程。</li>
+    <li>□ 待机状态已用 <code>IHOLD + TPOWERDOWN</code> 降流，长时间静止实测不烫手。</li>
+    <li>□ 低/空载工况已评估并决定是否启用 <code>CoolStep</code> 控流。</li>
+    <li>□ 散热焊盘良好焊接、GND 面扩散充分、铜厚与面积足够；按手册方法实测热阻并确认裕量。</li>
+    <li>□ 高压（≥52V）场景已复核 <code>S2G_LEVEL</code>，避免热环境下误触发短路保护。</li>
+    <li>□ 结温估算（结温 ≈ 环境 + P × R<sub>thJA实测</sub>）在设计点下留有裕量。</li>
+    <li>□ 实机满载 + 静置 + 长时间运行，结合 otpw/ot 与 SG_RESULT 记录并核对温度曲线。</li>
+  </ol>
+  <div class="note">本文档为知识库阅读笔记（KNOWLEDGE/TMC5160A），具体寄存器/参数以 <code>DATASHEET/TMC5160A_Datasheet_Rev1.14.pdf</code> 与固件源码为准。配套记录：<code>registers.md</code>（寄存器）、<code>hw-design.md</code>（硬件）、<code>sw-design.md</code>（软件）。</div>
+</section>
+
+<footer>
+  生成日期：2026-08-03 ｜ 依据 TMC5160A Datasheet Rev.1.14 / Rev.1.13 ｜ ELACO StepMotor 工程知识库
+</footer>
+
+</div>
+</body>
+</html>

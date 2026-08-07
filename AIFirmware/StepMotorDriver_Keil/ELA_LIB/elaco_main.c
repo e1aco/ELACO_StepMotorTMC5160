@@ -52,7 +52,7 @@ void elaco_main(void)
     // ela_tmc5160_test_run();
 
     /* EEPROM 测试 (注释下面内容可跳过测试) */
-    ela_eeprom_test_run();
+    // ela_eeprom_test_run();
 
     /* 主循环 */
     while (1)
@@ -63,7 +63,7 @@ void elaco_main(void)
         if (s_cl_tick_flag)
         {
             s_cl_tick_flag = 0;
-						// ela_closed_loop_tick(MOTOR_CTRL_U1);
+			// ela_closed_loop_tick(MOTOR_CTRL_U1);
             ela_closed_loop_tick(MOTOR_CTRL_U2);
         }
 
