@@ -1,0 +1,31 @@
+﻿
+  GitNexus Analyzer
+
+[2K
+  Skipped 1 large files (>512KB, likely generated/vendored)
+[2K
+  - Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h
+[2K
+  Set GITNEXUS_MAX_FILE_SIZE=<KB> to include files above the default cap.
+node.exe : {"level":40,"time":1785901752385,"name":"gitnexus","msg":"GitNexus: FTS extension unavailable; continuing wi
+thout FTS features. load-only policy: extension not pre-installed"}
+所在位置 C:\Users\admin\AppData\Roaming\npm\gitnexus.ps1:24 字符: 5
++     & "node$exe"  "$basedir/node_modules/gitnexus/dist/cli/index.js"  ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ({"level":40,"ti...pre-installed"}:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+{"level":40,"time":1785901772152,"name":"gitnexus","msg":"GitNexus: FTS extension unavailable; continuing without FTS f
+eatures. INSTALL fts timed out after 15000ms"}
+[2K
+FTS extension unavailable; skipping search-index creation. Full-text/BM25 search will be disabled until the LadybugDB FTS extension is installed once with network access (GITNEXUS_LBUG_EXTENSION_INSTALL=auto) or pre-installed for offline use. Run `gitnexus doctor` for details.
+
+  Repository indexed successfully (30.3s)
+
+  23,873 nodes | 25,344 edges | 103 clusters | 93 flows
+  C:\Users\admin\Desktop\TMC5160_StepMotor
+
+  Warning: full-text/BM25 search is disabled 鈥?the LadybugDB FTS extension was unavailable.
+  Install it once with network access (GITNEXUS_LBUG_EXTENSION_INSTALL=auto) then rerun, or
+  run `gitnexus analyze --repair-fts` when connected. Run `gitnexus doctor` for details.
+

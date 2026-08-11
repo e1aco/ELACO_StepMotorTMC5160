@@ -1,0 +1,25 @@
+# 构建产物
+build/
+MDK-ARM/StepMotorDriver_Keil/
+MDK-ARM/*.lst
+MDK-ARM/cl_build.log
+MDK-ARM/EventRecorderStub.scvd
+MDK-ARM/StepMotorDriver_Keil.uvguix.*
+
+# 用户/IDE 配置
+MDK-ARM/StepMotorDriver_Keil.uvguix.admin
+
+# 原始数据手册 PDF（大二进制，仅提交 .cl/datasheet 提取索引入库）
+/datasheet/*.pdf
+/datasheet/*.PDF
+
+# CodeGraph 代码图索引（本机生成，不提交）
+.codegraph/
+codegraph.json
+
+# 闭环运行时产物（CAN 监听捕获/状态，不提交）
+.cl/capture/
+MDK-ARM/_keil_build.log
+MDK-ARM/.vscode/
+MDK-ARM/DebugConfig/
+MDK-ARM/RTE/Device/STM32F407ZETx/*.dbgconf*
