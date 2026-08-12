@@ -78,7 +78,7 @@ void DRV_TMC5160_SetMode(uint8_t chip, uint8_t mode)
         sd_pin = GPIO_PIN_SET;
         spi_pin = GPIO_PIN_RESET;
     }
-    else
+    else 
     {
         return;
     }

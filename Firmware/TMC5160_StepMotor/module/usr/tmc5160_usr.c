@@ -195,8 +195,9 @@ void USR_TMC5160_Init(void)
         /* 设置模式引脚 */
         DRV_TMC5160_SetMode(chip->chip_number, chip->mode);
 
-        /* 使能电机驱动 */
-        DRV_TMC5160_Enable(chip->chip_number);
+        /* 保持 DRV_ENN 高电平(禁用), 上电默认寄存器尚未配置, 此时使能会瞬时过流
+         * 依据 .cl/datasheet/TMC5160A_Datasheet_Rev1.14_ch06_p006.. 使能时序:
+         *   上电→保持使能脚上拉(禁用)→写入电机配置→延时→拉低使能→延时 */
 
         /* 清除 Power-on 残留错误，同时验证 SPI 通信 */
         USR_TMC5160_WriteReg(chip, REG_GSTAT, 0x07);
@@ -260,6 +261,12 @@ void USR_TMC5160_Init(void)
         /* 温升排查历史：曾删除 U2 特判的 IHOLD=0+freewheel 块，恢复两片统一配置。
          * 现电流值按 2026-08-10 推导（IHOLD=8/IRUN=27，匹配电机额定 4A）见上。
          * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch06.p038.md: IHOLD_IRUN/TPOWERDOWN */
+
+        /* 使能时序: 配置写完后延时稳定, 再拉低 DRV_ENN 使能, 随后延时等待校准
+         * 避免上电瞬时过流(当前/斩波参数已就绪时才导通功率级) */
+        DRV_TMC5160_DelayMs(10);
+        DRV_TMC5160_Enable(chip->chip_number);
+        DRV_TMC5160_DelayMs(10);
     }
 
     /* 等待 StealthChop PWM 校准稳定 */
