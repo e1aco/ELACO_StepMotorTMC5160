@@ -65,5 +65,7 @@ uint8_t USR_CAN_SendMotionFeedback(uint8_t motor, int32_t pos,
                                    uint8_t status, uint8_t stage);
 uint8_t USR_CAN_SendPidFeedback(uint8_t motor, uint8_t pid_type, int32_t value);
 void    USR_CAN_DebugTick(void);
+void    USR_CAN_FaultMonitor(void);
+void    USR_CAN_FaultISR(void);
 
 #endif /* CAN_USR_H */

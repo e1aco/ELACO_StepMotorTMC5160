@@ -16,6 +16,8 @@
 #define REG_GSTAT          0x01
 #define REG_IHOLD_IRUN     0x10
 #define REG_TPOWERDOWN     0x11
+#define REG_TPWMTHRS       0x13
+#define REG_SHORT_CONF     0x09
 #define REG_TCOOLTHRS      0x14
 #define REG_COOLCONF       0x6D
 #define REG_RAMPMODE       0x20
@@ -212,14 +214,20 @@ void USR_TMC5160_Init(void)
             gstat = USR_TMC5160_ReadReg(chip, REG_GSTAT);
         }
 
-        /* 静音模式 (StealthChop) */
+        /* 静音模式 (StealthChop)
+         * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch07.p058.md: StealthChop
+         * 背景: 全程 SpreadCycle(GCONF=0x00) 试验虽解决高速丢步，但运行中持续抖动(斩波噪声)，
+         *       用户要求改回静音模式。丢步问题(uv_cp/电荷泵)在硬件排查中另行处理。
+         * GCONF=0x04: en_pwm_mode=1 → StealthChop 开启 */
         USR_TMC5160_WriteReg(chip, REG_GCONF, 0x04);
 
-        /* CHOPCONF: TOFF=5, TBL=01, HSTRT=0, HEND=0, MRES=0(256微步)
+        /* CHOPCONF: TOFF=5, TBL=%11(54clk 最长死区), HSTRT/HEND=StealthChop忽略, MRES=%0000(256微步)
          * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch06.p051/p052.md: CHOPCONF
-         * 说明: StealthChop 模式下 TOFF 仅用于使能电机驱动(ch07), TBL=01(24clk) 推荐,
-         *       MRES=0=256微步配合内部运动控制器。其余斩波参数由 PWMCONF 决定。 */
-        USR_TMC5160_WriteReg(chip, REG_CHOPCONF, 0x000101C5);
+         * 说明: StealthChop 模式下 TOFF 仅用于使能电机驱动(ch07), MRES=0=256微步配合内部运动控制器。
+         *       TBL 2026-08-14 由 %10(36clk) 加长至 %11(54clk): 实测 U1 双机运行时在 4A 全电流加速段
+         *       方向相关 S2GA 对地短路误触发(T=51200 移动途中 XACTUAL≈977 处, 高温后复现), 加长
+         *       比较器死区以抑制切换瞬态误触发。其余斩波参数由 PWMCONF 决定。 */
+        USR_TMC5160_WriteReg(chip, REG_CHOPCONF, 0x000181C5);
 
         /* DRV_CONF: DRVSTRENGTH=00(weak), 降低栅极驱动电流以减缓 MOS 开关斜率
          * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch03.p017.md: 表3.3 MOSFET Miller Charge VS DRVSTRENGTH
@@ -228,6 +236,14 @@ void USR_TMC5160_Init(void)
          *       依据 .cl/memory/hardware_corrections.md 2026-08-10 推导。
          * 只写寄存器无法读回, 其余字段按复位缺省: BBMTIME=0, BBMCLKS=4, OTSELECT=0, FILT_ISENSE=0 */
         USR_TMC5160_WriteReg(chip, REG_DRV_CONF, 0x00000400);
+
+        /* SHORT_CONF: 短路检测灵敏度调至最低(S2VS_LEVEL=15, S2G_LEVEL=15),
+         * 滤波最强(SHORTFILTER=3µs), 延迟最长(shortdelay=1500ns)
+         * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch06.p035.md: SHORT_CONF
+         * 目的: 大步偶发 S2GA/S2GB 短路误检测(驱动保护关断放开电机)，OTP 默认灵敏度(6/12)
+         *       在 4A 大步 + StealthChop 高 dv/dt 下误触发，降至最低灵敏度消除误检测。
+         * 值: 0x7030F = shortdelay(bit18)=1 | SHORTFILTER(bit17:16)=3 | S2G_LEVEL(bit11:8)=15 | S2VS_LEVEL(bit3:0)=15 */
+        USR_TMC5160_WriteReg(chip, REG_SHORT_CONF, 0x0007030F);
 
         /* PWMCONF: StealthChop 斩波频率 = %01 → fPWM=2/683×14MHz=41.0kHz
          * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch07.p060.md: 表7.1 表7.1 PWM 频率选择
@@ -240,13 +256,15 @@ void USR_TMC5160_Init(void)
         /* 编码器配置 */
         USR_TMC5160_ConfigEncoder(chip);
 
-        /* 电机电流: IHOLD=8, IRUN=27, IHOLDDELAY=6
+        /* 电机电流: IHOLD=8, IRUN=20, IHOLDDELAY=6
          * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch09.p074.md: 公式 IRMS=(CS+1)/32×VFS/RSENSE/√2
-         * 推导: RSENSE=0.05Ω, VFS(VSRT)=0.325V → IRUN=27 → (27+1)/32×0.325/0.05/√2 ≈ 4.02A RMS(额定 4A)
+         * 推导: RSENSE=0.05Ω, VFS(VSRT)=0.325V → IRUN=20 → (20+1)/32×0.325/0.05/√2 ≈ 3.02A RMS
          *       IHOLD=8 → (8+1)/32×0.325/0.05/√2 ≈ 1.20A RMS(保持力矩 1.3N.m 充足, 静止降热)
-         *       依据 .cl/memory/hardware_corrections.md 2026-08-10 推导。
+         * 2026-08-14: IRUN 27(4A)→20(3A). 实测双机持续满电流运行至 OTPW(120°C) 后 S2 短路比较器
+         *   热漂移误触发(S2GA/S2GB), TBL 加长仅推迟触发(~5.6min)未根除. 降流热功率降~44%, 待验证
+         *   3A 下 VMAX=50000 加速段是否仍无丢步(见 .cl/memory/hardware_corrections.md)。
          * 静止约 873ms(TPOWERDOWN=40) 后自动降至 IHOLD */
-        USR_TMC5160_WriteReg(chip, REG_IHOLD_IRUN, (8 << 16) | (27 << 8) | 6);
+        USR_TMC5160_WriteReg(chip, REG_IHOLD_IRUN, (8 << 16) | (20 << 8) | 6);
 
         /* 静止降流延迟: 2^18 tCLK 单位, 40 → 约 873ms
          * 需 >=2 保证 StealthChop PWM 自动调校正常 */
@@ -255,8 +273,11 @@ void USR_TMC5160_Init(void)
         /* CoolStep 关闭: 保持全速段 StealthChop 静音 */
         USR_TMC5160_WriteReg(chip, REG_COOLCONF, 0x0000);
 
-        /* CoolStep 速度窗口: 0 = 关闭(全速段 StealthChop) */
+        /* CoolStep 速度窗口: 0 = 关闭 */
         USR_TMC5160_WriteReg(chip, REG_TCOOLTHRS, 0);
+
+        /* TPWMTHRS: 试验发现高速切 SpreadCycle 在当前斩波参数下反复切换导致抖动,
+         * 回退 0 并改用全程 SpreadCycle(见 GCONF/CHOPCONF) */
 
         /* 温升排查历史：曾删除 U2 特判的 IHOLD=0+freewheel 块，恢复两片统一配置。
          * 现电流值按 2026-08-10 推导（IHOLD=8/IRUN=27，匹配电机额定 4A）见上。

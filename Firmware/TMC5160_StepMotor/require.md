@@ -130,6 +130,18 @@ FPU: 硬件 FPU（Cortex-M4F 单精度）
 - [ ] 跟踪：改 0R 后仍偶发的一次 U1 停转（地回路瞬态 VCC_IO 振铃待查）（起 2026-08-13 | 止 进行中）
   判据：若复现，抓遥测 U1 段 `A=` 是否仍为 RESET；示波器抓 U1 的 VCC_IO 停转瞬间波形；核对 VSA=100nF / 5VOUT/12VOUT=2.2~10µF / VCC_IO bulk 就近。
 
+## 2026-08-14
+- [✓] 反馈帧 byte[6] 由运动阶段改为温度/保护状态。（起 2026-08-14 | 止 2026-08-14 | 验收 2026-08-14：byte6 实测正确显示 OTPW/S2/失步，本会话再扩展 S2 与失步位后随下方任务一并验收）
+  背景：运动阶段经排查为移植代码错误——TMC5160 RAMP_STAT(0x35) 实际无加速/匀速/减速位（ch06.p044：bit5=event_stop_r/bit6=event_stop_sg/bit7=event_pos_reached 锁存不清），原映射把 event_pos_reached 当"减速"致运动中恒 04/14、停止 1C。按用户要求回退两次恢复 GetStage/GetMotionPhase 后，仅改 byte[6] 数据源。
+  改动：can_usr.c USR_CAN_SendMotionFeedback byte[6]=protect_flags（bit0=OTPW, bit1=OT, bit2=drv_err），保留 stage 参数(恒0 未用)。编译 0E0W（Code=15224）。烧录实测由人工接管。
+
+## 2026-08-14
+- [✓] 根除停止锁轴：热致 S2 对地短路比较器假触发修复链（起 2026-08-14 | 止 2026-08-14 | 验收 2026-08-14：双机 150 轮浸泡（U2 vel20000 + U1 200↔51200@2.5s）0 次 S2/失步/drv_err/FAULT，移动量精确 ±51200 无丢步，仅 byte6=01(OTPW) 提示）
+  现象/根因：双机持续 4A 满电流运行 → TMC5160 结温至 OTPW(120°C) → S2 短路比较器热漂移假触发（S2GA/S2GB，方向相关，静止亦现）→ 驱动关断失保持扭矩 → 轴自由漂移 → X_ENC 与 XACTUAL 永久错位 → 失步永久误报 = 停止锁轴。每次闩存轴漂移 ~3.7万步。
+  修复链：①can_usr.c byte6 增 S2GA/S2GB/S2VSA/S2VSB/失步位（故障可见）②FaultMonitor 故障掩码剔除 OTPW（只报不闩存，断 ENN 翻转放大）③CHOPCONF TBL %10→%11(54clk，仅推迟触发) ④IRUN 27→20(4A→3A，热功率↓44%，根除)。
+  遗留：OTPW 仍常亮（芯片结温高，升温快）但仅提示无害；若未来负载更重需 3A 以上扭矩，须评估硬件散热或回提 IRUN 观察 S2。
+  判据：监控问题位 `byte6 & 0xFE`（drv_err|S2|失步），不再用 `byte6==0x04`；测试脚本 .cl/tools/can_send_test.py 已同步。
+
 # CAN 协议
 ## 设置CAN协议
 
@@ -195,7 +207,7 @@ FPU: 硬件 FPU（Cortex-M4F 单精度）
 | [0-3] | 偏差值 (int32) | X_ENC - XACTUAL (正值=编码器超前, 负值=编码器滞后) |
 | [4] | 状态标志位 | bit0=到位, bit1=失步, bit2=过温, bit3=驱动错误, bit4=SPI异常 |
 | [5] | 电机选择 | |
-| [6] | 运动阶段 | bit0=加速, bit1=匀速, bit2=减速, bit3=归零等待, bit4=静止锁轴 |
+| [6] | 温度/保护状态 | bit0=OTPW(过温预警120°C), bit1=OT(过温保护关断136/143/150°C), bit2=drv_err(保护关断)；0=正常 |
 | [7] | 校验和 | |
 
 **状态标志位 (byte[4]) 详解：**

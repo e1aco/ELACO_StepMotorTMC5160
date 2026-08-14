@@ -100,10 +100,8 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_CAN1_Init();
-  MX_TIM2_Init();
   MX_TIM4_Init();
-  MX_IWDG_Init();
-  MX_TIM3_Init();
+  //MX_IWDG_Init();
   MX_USART1_UART_Init();
   MX_TIM5_Init();
   MX_SPI3_Init();
@@ -123,6 +121,7 @@ int main(void)
   while (1)
   {
     USR_CAN_Process();
+    USR_CAN_FaultMonitor();
 
 //    /* 闭环控制：TIM7 ISR 触发，在主循环中执行 SPI 操作 */
 //    if (g_cl_tick_flag)
@@ -134,16 +133,17 @@ int main(void)
 
     USR_TMC5160_SaveConfig();
     /* CAN 调试遥测：每 ~500ms 发一次（ID 0x1AA55F44，"CAN 当串口用"） */
-    if ((HAL_GetTick() - s_dbg_last_tick) >= 500)
-    {
-        s_dbg_last_tick = HAL_GetTick();
-        USR_CAN_DebugTick();
-    }
+//    if ((HAL_GetTick() - s_dbg_last_tick) >= 500)
+//    {
+//        s_dbg_last_tick = HAL_GetTick();
+//        USR_CAN_DebugTick();
+//    }
     /* 独立看门狗喂狗 */
-    HAL_IWDG_Refresh(&hiwdg);
+    //HAL_IWDG_Refresh(&hiwdg);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		
   }
   /* USER CODE END 3 */
 }
