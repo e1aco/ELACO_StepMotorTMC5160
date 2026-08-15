@@ -133,11 +133,11 @@ int main(void)
 
     USR_TMC5160_SaveConfig();
     /* CAN 调试遥测：每 ~500ms 发一次（ID 0x1AA55F44，"CAN 当串口用"） */
-//    if ((HAL_GetTick() - s_dbg_last_tick) >= 500)
-//    {
-//        s_dbg_last_tick = HAL_GetTick();
-//        USR_CAN_DebugTick();
-//    }
+    if ((HAL_GetTick() - s_dbg_last_tick) >= 500)
+    {
+        s_dbg_last_tick = HAL_GetTick();
+        USR_CAN_DebugTick();
+    }
     /* 独立看门狗喂狗 */
     //HAL_IWDG_Refresh(&hiwdg);
     /* USER CODE END WHILE */
