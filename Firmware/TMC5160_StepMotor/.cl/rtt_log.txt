@@ -1,0 +1,16 @@
+RTT ready
+[t=1000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=2000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=3000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=4000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=5000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=6000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=7000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=8000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=9000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=10000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=11000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=12000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=13000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=14000] U1 act=0 enc=0 | U2 act=0 enc=217
+[t=15000] U1 act=0 enc=0 | U2 act=0 enc=217

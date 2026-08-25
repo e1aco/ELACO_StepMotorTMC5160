@@ -1,0 +1,6 @@
+r
+h
+loadfile "E:\Desktop\XM\ELACO_StepMotorTMC5160\Firmware\TMC5160_StepMotor\MDK-ARM\StepMotorDriver_Keil\StepMotorDriver_Keil.hex"
+r
+g
+qc

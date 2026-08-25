@@ -33,6 +33,7 @@
 #include "usr/tmc5160_usr.h"
 #include "usr/motor_ctrl.h"
 #include "usr/closed_loop.h"
+#include "drv/rtt_dbg.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,7 +57,6 @@
 /* 闭环节拍标志：TIM7 ISR 置位（stm32f4xx_it.c），主循环消费 */
 volatile uint8_t g_cl_tick_flag = 0;
 /* CAN 调试遥测节流：主循环每 ~500ms 发一次（HAL_GetTick 1ms） */
-static uint32_t s_dbg_last_tick = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -114,6 +114,8 @@ int main(void)
   USR_TMC5160_Init();
   USR_MOTOR_Init();
   USR_CLOSEDLOOP_Init();
+  RTT_DBG_Init();
+  RTT_DBG_Str("RTT ready\r\n");
   /* USER CODE END 2 */
 	
   /* Infinite loop */
@@ -121,7 +123,22 @@ int main(void)
   while (1)
   {
     USR_CAN_Process();
-    // USR_CAN_FaultMonitor();
+
+    /* RTT 心跳遥测：1Hz 打印两电机实际/编码器位置 */
+    {
+      static uint32_t s_rtt_last_tick = 0;
+      uint32_t now = HAL_GetTick();
+      if ((now - s_rtt_last_tick) >= 1000)
+      {
+        s_rtt_last_tick = now;
+        RTT_DBG_Printf("[t=%u] U1 act=%d enc=%d | U2 act=%d enc=%d\r\n",
+                       (unsigned)now,
+                       (int)USR_MOTOR_GetPosition(MOTOR_CTRL_U1),
+                       (int)USR_MOTOR_GetEncoderPosition(MOTOR_CTRL_U1),
+                       (int)USR_MOTOR_GetPosition(MOTOR_CTRL_U2),
+                       (int)USR_MOTOR_GetEncoderPosition(MOTOR_CTRL_U2));
+      }
+    }
 
 //    /* 闭环控制：TIM7 ISR 触发，在主循环中执行 SPI 操作 */
 //    if (g_cl_tick_flag)
@@ -132,12 +149,6 @@ int main(void)
 //    }
 
     USR_TMC5160_SaveConfig();
-    /* CAN 调试遥测：每 ~500ms 发一次（ID 0x1AA55F44，"CAN 当串口用"） */
-    if ((HAL_GetTick() - s_dbg_last_tick) >= 500)
-    {
-        s_dbg_last_tick = HAL_GetTick();
-        USR_CAN_DebugTick();
-    }
     /* 独立看门狗喂狗 */
     //HAL_IWDG_Refresh(&hiwdg);
     /* USER CODE END WHILE */

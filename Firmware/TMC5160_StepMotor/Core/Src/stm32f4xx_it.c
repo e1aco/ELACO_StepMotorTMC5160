@@ -280,9 +280,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
   }
 
   QUEUE_Insert(&g_queue_st, rx_data);
-
-  /* 中断内检测驱动错误闩存（主循环已冻结快照），置位则连发 3 次 FAULT 包 */
-  USR_CAN_FaultISR();
 }
 
 /**

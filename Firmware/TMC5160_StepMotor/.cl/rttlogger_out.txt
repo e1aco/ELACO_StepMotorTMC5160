@@ -1,0 +1,31 @@
+SEGGER J-Link RTT Logger
+Compiled Aug 19 2026 12:12:43
+(c) 2016-2017 SEGGER Microcontroller GmbH, www.segger.com
+         Solutions for real time microcontroller applications
+
+Default logfile path: C:\Users\electronic\AppData\Roaming\SEGGER
+
+------------------------------------------------------------ 
+
+
+------------------------------------------------------------ 
+Connected to:
+  SEGGER J-Link
+  S/N: 69404465
+
+Searching for RTT Control Block...OK.
+3 up-channels found:
+0: Terminal
+1: 
+2: 
+Selected RTT Channel description: 
+  Index: 0
+  Name:  Terminal
+  Size:  1024 bytes.
+
+Output file: E:\Desktop\XM\ELACO_StepMotorTMC5160\Firmware\TMC5160_StepMotor\.cl\rtt_log.txt
+
+Getting RTT data from target. Press any key to quit.
+------------------------------------------------------------ 
+
+Transfer rate: 638 Bytes/s Data written: 319 Bytes Transfer rate: 88 Bytes/s Data written: 363 Bytes Transfer rate: 0 Bytes/s Data written: 363 Bytes Transfer rate: 87 Bytes/s Data written: 407 Bytes Transfer rate: 89 Bytes/s Data written: 452 Bytes Transfer rate: 0 Bytes/s Data written: 452 Bytes Transfer rate: 89 Bytes/s Data written: 497 Bytes Transfer rate: 0 Bytes/s Data written: 497 Bytes Transfer rate: 0 Bytes/s Data written: 497 Bytes Transfer rate: 89 Bytes/s Data written: 542 Bytes Transfer rate: 90 Bytes/s Data written: 587 Bytes Transfer rate: 0 Bytes/s Data written: 587 Bytes Transfer rate: 0 Bytes/s Data written: 587 Bytes Transfer rate: 89 Bytes/s Data written: 632 Bytes Transfer rate: 89 Bytes/s Data written: 677 Bytes 

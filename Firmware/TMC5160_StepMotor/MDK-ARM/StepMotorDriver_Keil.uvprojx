@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../module;../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include</IncludePath>
+              <IncludePath>../module;../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../SEGGER_RTT/RTT;../SEGGER_RTT/Config</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -358,7 +358,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath></IncludePath>
+              <IncludePath>../SEGGER_RTT/RTT</IncludePath>
             </VariousControls>
           </Aads>
           <LDads>
@@ -463,6 +463,11 @@
               <FileName>eeprom.c</FileName>
               <FileType>1</FileType>
               <FilePath>../module/drv/eeprom.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtt_dbg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../module/drv/rtt_dbg.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -608,6 +613,21 @@
               <FileName>system_stm32f4xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/system_stm32f4xx.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>SEGGER RTT</GroupName>
+          <Files>
+            <File>
+              <FileName>SEGGER_RTT.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../SEGGER_RTT/RTT/SEGGER_RTT.c</FilePath>
+            </File>
+            <File>
+              <FileName>SEGGER_RTT_printf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../SEGGER_RTT/RTT/SEGGER_RTT_printf.c</FilePath>
             </File>
           </Files>
         </Group>

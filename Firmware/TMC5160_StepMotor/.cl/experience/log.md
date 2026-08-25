@@ -117,3 +117,14 @@
 - **���շ���**: �о�������U1 �� |E?X| �˶��ƶ���Ϊ���о� + byte6&0x7E��U2 ��������ʧ��λ��+ soak_switch_test.py �����̲���
 - **��֤���**: 50 �֣�0 �� S2/��λ/FAULT/A-������U1 ���涪�������վ�ȷ��λ X=E=-51200��U2 ������ת�������û� 130 ���˹�����ͨ����
 - **��������**: generalize/tmc5160.md��S2 ��Ư�������䣺�߲� FET ��ͨѹ�� + ��ֵ�������ȳԹ⣬����������޹أ������л�˲̬ deviation_warn �б𷨣������������飨pyocd ����¼��˫ python-can �����棩������
+
+## 2026-08-25 CAN 调试遥测迁移到 J-Link RTT（/cl end 验收）
+- **模式**: /cl code + /cl run 物理闭环（PCAN 发命令 + RTT 收遥测）
+- **现象**: 原 0x1AA55F44 CAN 调试帧与命令协议共总线、占带宽；改用 J-Link RTT 作调试回传通道
+- **尝试**:
+  - 1. SEGGER_RTT_ASM_ARMv7M.S 为 GCC 语法，Keil ARMASM 报 A1167E → 从工程移除 .S 文件，用 C 版 SEGGER_RTT_WriteSkipNoLock（功能等价）
+  - 2. 编译通过但 J-Link 报 Failed to find RTT control block → main.c 未调用 RTT_DBG_Init()，链接器未使用段删除把 _SEGGER_RTT 整条裁掉（map 无符号）；接上初始化调用后 map 出现 _SEGGER_RTT@0x200003F8 / _acUpBuffer@0x200004A0
+  - 3. 连接成功但 Data written=0 → 固件仅开机打一条；主循环加 1Hz 心跳遥测
+- **最终方案**: SEGGER_RTT 库（SEGGER_RTT.c+printf.c）入工程 SEGGER RTT 组；module/drv/rtt_dbg.{c,h} 封装 Init/Str/Printf；main.c 初始化 + 1Hz 双电机 act/enc 心跳
+- **验证结果**: JLinkRTTLogger(S/N 69404465) 控制块自动搜索 OK，抓到 `RTT ready` + t=1000..15000ms 心跳行，U2 enc=217 静态偏移待查 ✅
+- **经验引用**: 工具坑两条（ARMASM 不兼容 GCC .S；未引用即被链接器裁掉导致 control block 找不到）
