@@ -1,0 +1,11 @@
+{
+  "source": "57CME13 MS31.pdf",
+  "engine": "pypdf",
+  "mode": "technical",
+  "split": "small",
+  "page_split": true,
+  "chunk_threshold": 4000,
+  "pages": 1,
+  "est_tokens": 110,
+  "artifacts": []
+}

@@ -115,13 +115,13 @@ int main(void)
   USR_MOTOR_Init();
   USR_CLOSEDLOOP_Init();
   /* USER CODE END 2 */
-
+	
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
     USR_CAN_Process();
-    USR_CAN_FaultMonitor();
+    // USR_CAN_FaultMonitor();
 
 //    /* 闭环控制：TIM7 ISR 触发，在主循环中执行 SPI 操作 */
 //    if (g_cl_tick_flag)

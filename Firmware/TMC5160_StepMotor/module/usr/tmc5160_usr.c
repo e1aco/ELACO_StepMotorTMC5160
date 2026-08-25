@@ -214,12 +214,12 @@ void USR_TMC5160_Init(void)
             gstat = USR_TMC5160_ReadReg(chip, REG_GSTAT);
         }
 
-        /* 静音模式 (StealthChop)
-         * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch07.p058.md: StealthChop
-         * 背景: 全程 SpreadCycle(GCONF=0x00) 试验虽解决高速丢步，但运行中持续抖动(斩波噪声)，
-         *       用户要求改回静音模式。丢步问题(uv_cp/电荷泵)在硬件排查中另行处理。
-         * GCONF=0x04: en_pwm_mode=1 → StealthChop 开启 */
-        USR_TMC5160_WriteReg(chip, REG_GCONF, 0x04);
+        /* 斩波模式: 全程 SpreadCycle（非静音）
+         * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch06.p032.md: GCONF.en_pwm_mode
+         * GCONF=0x00: en_pwm_mode=0 → SpreadCycle 全程启用（高速段扭矩足，可到 50rev/s）
+         * 背景: 原 StealthChop(GCONF=0x04) 高速扭矩不足/丢步。08-05 全程 SpreadCycle 试验已证
+         *       解决高速丢步（仅噪声大）。用户 2026-08-18 明确允许非静音模式。 */
+        USR_TMC5160_WriteReg(chip, REG_GCONF, 0x00);
 
         /* CHOPCONF: TOFF=5, TBL=%11(54clk 最长死区), HSTRT/HEND=StealthChop忽略, MRES=%0000(256微步)
          * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch06.p051/p052.md: CHOPCONF
@@ -327,6 +327,11 @@ static const TMC5160_PROFILE_T s_profiles[TMC5160_PROFILE_COUNT] = {
     {0, 10, 0, 0, 5000, 20000, 5000, 5000, 10},
     {0, 10, 0, 0, 10000, 50000, 10000, 10000, 10},
     {0, 10, 0, 0, 20000, 100000, 20000, 20000, 10},
+    /* 组5 超高速: VMAX=3067834=50rev/s, AMAX/DMAX=40000(加速3.57M µsteps/s², 0.72s达2.56M)
+     * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch06.p040.md:
+     *   VMAX[µsteps/t] t=2^24/fCLK → 50×51200×2^24/14e6=3067834(上限2^23-512=8388608 OK)
+     *   AMAX[µsteps/ta²] ta²=2^41/fCLK² → 40000→3.57M µsteps/s² */
+    {0, 10, 0, 0, 40000, 3067834, 40000, 40000, 10},
 };
 
 /**

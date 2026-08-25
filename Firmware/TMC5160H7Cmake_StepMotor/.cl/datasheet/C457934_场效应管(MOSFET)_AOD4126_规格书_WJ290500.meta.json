@@ -1,0 +1,11 @@
+{
+  "source": "C457934_场效应管(MOSFET)_AOD4126_规格书_WJ290500.PDF",
+  "engine": "pypdf",
+  "mode": "technical",
+  "split": "small",
+  "page_split": true,
+  "chunk_threshold": 4000,
+  "pages": 7,
+  "est_tokens": 2381,
+  "artifacts": []
+}

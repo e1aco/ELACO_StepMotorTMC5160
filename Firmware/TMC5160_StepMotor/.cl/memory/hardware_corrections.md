@@ -42,6 +42,17 @@
 ### 监控判据更新
 PCAN 监控问题判据：`byte6 & 0xFE`（drv_err|S2|失步），不再是 `byte6==0x04`。测试脚本 `.cl/tools/can_send_test.py` 已同步。
 
+## 2026-08-18 高速模式：50rev/s 参数组5 + 全程 SpreadCycle（最高速验证）
+
+> 器件代入：电机 57CME13 步距角 1.8°→200 整步/圈 × 256 微步(MRES=0) = 51200 µsteps/圈；fCLK=14MHz(TIM4_CH1)。
+
+| 项 | 值 | 推导链 | 说明 |
+|----|----|--------|------|
+| GCONF | **0x00** | 原 0x04(en_pwm_mode=1,StealthChop)；用户 2026-08-18 允许非静音。ch06.p032：en_pwm_mode=0→SpreadCycle 全程，高速段扭矩足 | 08-05 已证 SpreadCycle 解决高速丢步（仅噪声大） |
+| VMAX(组5) | **3067834** | `[µsteps/t]`, t=2^24/fCLK → vµsteps/s=VMAX×fCLK/2^24。50rev/s=50×51200=2,560,000µsteps/s → VMAX=2,560,000×2^24/14e6=3067834（上限 2^23-512=8388608 OK） | ch06.p040 |
+| AMAX/DMAX(组5) | **40000** | `[µsteps/ta²]`, ta²=2^41/fCLK² → aµsteps/s²=AMAX×fCLK²/2^41。40000→3.57M µsteps/s²，0.72s 达 2.56M | ch06.p040 |
+| 遥测 | V= 字段 | can_usr.c USR_CAN_DebugTick 读 REG_VACTUAL(0x22) 十进制追加 | 验证转速 |
+
 ## 项目专属配置推导（2026-08-10，代入电机+MOS 参数，取代 datasheet 默认值）
 
 > 器件代入：电机 57CME13 额定 4A/电感 1.6mH/相阻 0.42Ω/36V；MOS AOD4126 Qgd=10nC(typ)；

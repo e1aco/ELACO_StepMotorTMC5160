@@ -1,0 +1,659 @@
+{
+  "source": "TMC5160A_Datasheet_Rev1.14.pdf",
+  "engine": "pypdf",
+  "mode": "technical",
+  "split": "heading",
+  "page_split": true,
+  "chunk_threshold": 4000,
+  "pages": 134,
+  "est_tokens": 76243,
+  "artifacts": [
+    {
+      "pages": [
+        1,
+        2,
+        67,
+        94,
+        122
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch00_front.md",
+      "chars": 12909,
+      "token_est": 3155,
+      "title": "0 Driver off"
+    },
+    {
+      "page": 3,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch17.p003.md",
+      "chars": 5505,
+      "token_est": 1375
+    },
+    {
+      "page": 99,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch17.p099.md",
+      "chars": 2411,
+      "token_est": 605
+    },
+    {
+      "page": 100,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch17.p100.md",
+      "chars": 2669,
+      "token_est": 677
+    },
+    {
+      "page": 101,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch17.p101.md",
+      "chars": 2905,
+      "token_est": 726
+    },
+    {
+      "page": 102,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch17.p102.md",
+      "chars": 3832,
+      "token_est": 972
+    },
+    {
+      "page": 103,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch17.p103.md",
+      "chars": 2214,
+      "token_est": 558
+    },
+    {
+      "page": 104,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch17.p104.md",
+      "chars": 545,
+      "token_est": 134
+    },
+    {
+      "pages": [
+        4,
+        107,
+        108,
+        109
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch20_20_abn_incremental_encoder.md",
+      "chars": 8220,
+      "token_est": 2037,
+      "title": "20 ABN INCREMENTAL ENCODER"
+    },
+    {
+      "page": 5,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch01.p005.md",
+      "chars": 3133,
+      "token_est": 792
+    },
+    {
+      "page": 6,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch01.p006.md",
+      "chars": 2661,
+      "token_est": 672
+    },
+    {
+      "page": 7,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch01.p007.md",
+      "chars": 2633,
+      "token_est": 663
+    },
+    {
+      "page": 8,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch01.p008.md",
+      "chars": 3256,
+      "token_est": 822
+    },
+    {
+      "page": 9,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch01.p009.md",
+      "chars": 2483,
+      "token_est": 628
+    },
+    {
+      "page": 10,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch01.p010.md",
+      "chars": 1641,
+      "token_est": 413
+    },
+    {
+      "page": 50,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch01.p050.md",
+      "chars": 1149,
+      "token_est": 279
+    },
+    {
+      "page": 51,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch01.p051.md",
+      "chars": 2760,
+      "token_est": 686
+    },
+    {
+      "page": 52,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch01.p052.md",
+      "chars": 1368,
+      "token_est": 335
+    },
+    {
+      "page": 53,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch01.p053.md",
+      "chars": 2063,
+      "token_est": 511
+    },
+    {
+      "page": 54,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch01.p054.md",
+      "chars": 2357,
+      "token_est": 582
+    },
+    {
+      "page": 77,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch01.p077.md",
+      "chars": 2846,
+      "token_est": 704
+    },
+    {
+      "pages": [
+        11,
+        12,
+        13,
+        14
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch02_2_pin_assignments.md",
+      "chars": 8176,
+      "token_est": 2029,
+      "title": "2 Pin Assignments"
+    },
+    {
+      "page": 15,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch03.p015.md",
+      "chars": 3301,
+      "token_est": 837
+    },
+    {
+      "page": 16,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch03.p016.md",
+      "chars": 1474,
+      "token_est": 369
+    },
+    {
+      "page": 17,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch03.p017.md",
+      "chars": 2552,
+      "token_est": 643
+    },
+    {
+      "page": 18,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch03.p018.md",
+      "chars": 2170,
+      "token_est": 541
+    },
+    {
+      "page": 19,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch03.p019.md",
+      "chars": 3168,
+      "token_est": 799
+    },
+    {
+      "page": 20,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch03.p020.md",
+      "chars": 926,
+      "token_est": 225
+    },
+    {
+      "page": 21,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch03.p021.md",
+      "chars": 2099,
+      "token_est": 529
+    },
+    {
+      "page": 22,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch03.p022.md",
+      "chars": 1956,
+      "token_est": 493
+    },
+    {
+      "page": 124,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch03.p124.md",
+      "chars": 958,
+      "token_est": 237
+    },
+    {
+      "pages": [
+        23,
+        24,
+        25
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch04_4_spi_interface.md",
+      "chars": 7986,
+      "token_est": 1986,
+      "title": "4 SPI Interface"
+    },
+    {
+      "page": 26,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch05.p026.md",
+      "chars": 3429,
+      "token_est": 862
+    },
+    {
+      "page": 27,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch05.p027.md",
+      "chars": 2010,
+      "token_est": 497
+    },
+    {
+      "page": 28,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch05.p028.md",
+      "chars": 2428,
+      "token_est": 582
+    },
+    {
+      "page": 29,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch05.p029.md",
+      "chars": 1955,
+      "token_est": 493
+    },
+    {
+      "page": 30,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch05.p030.md",
+      "chars": 1537,
+      "token_est": 389
+    },
+    {
+      "page": 34,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch05.p034.md",
+      "chars": 2079,
+      "token_est": 511
+    },
+    {
+      "page": 35,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch05.p035.md",
+      "chars": 2191,
+      "token_est": 544
+    },
+    {
+      "page": 36,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch05.p036.md",
+      "chars": 1870,
+      "token_est": 461
+    },
+    {
+      "page": 37,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch05.p037.md",
+      "chars": 1109,
+      "token_est": 275
+    },
+    {
+      "page": 38,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch05.p038.md",
+      "chars": 2352,
+      "token_est": 584
+    },
+    {
+      "page": 39,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch05.p039.md",
+      "chars": 1852,
+      "token_est": 460
+    },
+    {
+      "page": 31,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch06.p031.md",
+      "chars": 1892,
+      "token_est": 468
+    },
+    {
+      "page": 32,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch06.p032.md",
+      "chars": 2176,
+      "token_est": 540
+    },
+    {
+      "page": 33,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch06.p033.md",
+      "chars": 2298,
+      "token_est": 570
+    },
+    {
+      "page": 40,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch06.p040.md",
+      "chars": 2088,
+      "token_est": 514
+    },
+    {
+      "page": 41,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch06.p041.md",
+      "chars": 1312,
+      "token_est": 321
+    },
+    {
+      "page": 42,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch06.p042.md",
+      "chars": 1539,
+      "token_est": 380
+    },
+    {
+      "page": 43,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch06.p043.md",
+      "chars": 3000,
+      "token_est": 753
+    },
+    {
+      "page": 44,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch06.p044.md",
+      "chars": 3074,
+      "token_est": 769
+    },
+    {
+      "page": 45,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch06.p045.md",
+      "chars": 1540,
+      "token_est": 373
+    },
+    {
+      "page": 46,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch06.p046.md",
+      "chars": 1567,
+      "token_est": 394
+    },
+    {
+      "page": 47,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch06.p047.md",
+      "chars": 2120,
+      "token_est": 512
+    },
+    {
+      "pages": [
+        48,
+        49,
+        56,
+        74,
+        75
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch09_9_bit_signed_offset.md",
+      "chars": 11310,
+      "token_est": 2782,
+      "title": "9 Bit signed offset added to the"
+    },
+    {
+      "page": 55,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch07.p055.md",
+      "chars": 1976,
+      "token_est": 483
+    },
+    {
+      "page": 57,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch07.p057.md",
+      "chars": 1691,
+      "token_est": 425
+    },
+    {
+      "page": 58,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch07.p058.md",
+      "chars": 3181,
+      "token_est": 793
+    },
+    {
+      "page": 59,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch07.p059.md",
+      "chars": 1344,
+      "token_est": 337
+    },
+    {
+      "page": 60,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch07.p060.md",
+      "chars": 4005,
+      "token_est": 1012
+    },
+    {
+      "page": 61,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch07.p061.md",
+      "chars": 583,
+      "token_est": 144
+    },
+    {
+      "page": 62,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch07.p062.md",
+      "chars": 2879,
+      "token_est": 723
+    },
+    {
+      "page": 63,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch07.p063.md",
+      "chars": 2392,
+      "token_est": 602
+    },
+    {
+      "page": 64,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch07.p064.md",
+      "chars": 2166,
+      "token_est": 544
+    },
+    {
+      "page": 65,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch07.p065.md",
+      "chars": 2850,
+      "token_est": 724
+    },
+    {
+      "page": 66,
+      "file": "TMC5160A_Datasheet_Rev1.14.ch07.p066.md",
+      "chars": 3378,
+      "token_est": 851
+    },
+    {
+      "pages": [
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch08_8_spreadcycle_and_classic.md",
+      "chars": 13591,
+      "token_est": 3388,
+      "title": "8 SpreadCycle and Classic Chopper"
+    },
+    {
+      "pages": [
+        76
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch10_10_velocity_based_mode.md",
+      "chars": 2528,
+      "token_est": 633,
+      "title": "10 Velocity Based Mode Control"
+    },
+    {
+      "pages": [
+        78,
+        79,
+        80
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch11_11_diagnostics_and_protection.md",
+      "chars": 6713,
+      "token_est": 1664,
+      "title": "11 Diagnostics and Protection"
+    },
+    {
+      "pages": [
+        81,
+        82,
+        83,
+        84,
+        85,
+        86
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch12_12_ramp_generator.md",
+      "chars": 14981,
+      "token_est": 3746,
+      "title": "12 Ramp Generator"
+    },
+    {
+      "pages": [
+        87,
+        88,
+        89,
+        90
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch13_13_stallguard2_load_measurement.md",
+      "chars": 12819,
+      "token_est": 3224,
+      "title": "13 StallGuard2 Load Measurement"
+    },
+    {
+      "pages": [
+        91,
+        92,
+        93
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch14_14_coolstep_operation.md",
+      "chars": 6766,
+      "token_est": 1675,
+      "title": "14 CoolStep Operation"
+    },
+    {
+      "pages": [
+        95,
+        96
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch15_15_2_changing_resolution.md",
+      "chars": 5278,
+      "token_est": 1324,
+      "title": "15.2 Changing Resolution"
+    },
+    {
+      "pages": [
+        97,
+        98
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch16_16_diag_outputs.md",
+      "chars": 3256,
+      "token_est": 811,
+      "title": "16 DIAG Outputs"
+    },
+    {
+      "pages": [
+        105
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch18_18_sine_wave_look.md",
+      "chars": 2516,
+      "token_est": 629,
+      "title": "18 Sine-Wave Look-up Table"
+    },
+    {
+      "pages": [
+        106
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch19_19_emergency_stop.md",
+      "chars": 2601,
+      "token_est": 647,
+      "title": "19 Emergency Stop"
+    },
+    {
+      "pages": [
+        110
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch21_21_dc_motor_or.md",
+      "chars": 3554,
+      "token_est": 891,
+      "title": "21 DC Motor or Solenoid"
+    },
+    {
+      "pages": [
+        111,
+        112,
+        113,
+        114,
+        115
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch22_22_quick_configuration_guide.md",
+      "chars": 6743,
+      "token_est": 1649,
+      "title": "22 Quick Configuration Guide"
+    },
+    {
+      "pages": [
+        116
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch23_23_getting_started.md",
+      "chars": 3070,
+      "token_est": 759,
+      "title": "23 Getting Started"
+    },
+    {
+      "pages": [
+        117,
+        118
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch24_24_standalone_operation.md",
+      "chars": 3852,
+      "token_est": 953,
+      "title": "24 Standalone Operation"
+    },
+    {
+      "pages": [
+        119
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch26_26_clock_oscillator_and.md",
+      "chars": 3402,
+      "token_est": 857,
+      "title": "26 Clock Oscillator and Input"
+    },
+    {
+      "pages": [
+        120,
+        121,
+        123
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch28_28_electrical_characteristics.md",
+      "chars": 7050,
+      "token_est": 1721,
+      "title": "28 Electrical Characteristics"
+    },
+    {
+      "pages": [
+        125,
+        126,
+        127
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch29_29_layout_considerations.md",
+      "chars": 3845,
+      "token_est": 943,
+      "title": "29 Layout Considerations"
+    },
+    {
+      "pages": [
+        128,
+        129,
+        130,
+        131
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch30_30_package_mechanical_data.md",
+      "chars": 2182,
+      "token_est": 503,
+      "title": "30 Package Mechanical Data"
+    },
+    {
+      "pages": [
+        132
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch34_34_designed_for_sustainability.md",
+      "chars": 3234,
+      "token_est": 810,
+      "title": "34 Designed for Sustainability"
+    },
+    {
+      "pages": [
+        133
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch35_35_table_of_figures.md",
+      "chars": 8049,
+      "token_est": 2021,
+      "title": "35 Table of Figures"
+    },
+    {
+      "pages": [
+        134
+      ],
+      "file": "TMC5160A_Datasheet_Rev1.14_ch37_37_references.md",
+      "chars": 2677,
+      "token_est": 665,
+      "title": "37 References"
+    }
+  ]
+}

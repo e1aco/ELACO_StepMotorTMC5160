@@ -224,7 +224,7 @@ static void CAN_DbgAppendAlarm(char *buf, uint16_t *len,
  */
 void USR_CAN_DebugTick(void)
 {
-    char buf[128];
+    char buf[160];
     uint16_t len = 0;
     uint8_t idx;
 
@@ -245,6 +245,8 @@ void USR_CAN_DebugTick(void)
         CAN_DbgAppendHex(buf, &len, USR_MOTOR_GetStatus(motor), 2);
         CAN_DbgAppendStr(buf, &len, " P=");
         CAN_DbgAppendHex(buf, &len, USR_MOTOR_GetStage(motor), 2);
+        CAN_DbgAppendStr(buf, &len, " V=");
+        CAN_DbgAppendDec(buf, &len, (int32_t)USR_TMC5160_ReadReg(chip, REG_VACTUAL));
         CAN_DbgAppendStr(buf, &len, " D=");
         CAN_DbgAppendHex(buf, &len, drv_status, 8);
         CAN_DbgAppendStr(buf, &len, " G=");

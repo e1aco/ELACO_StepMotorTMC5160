@@ -54,7 +54,7 @@ typedef struct {
     uint32_t tzerowait;
 } TMC5160_PROFILE_T;
 
-#define TMC5160_PROFILE_COUNT  4
+#define TMC5160_PROFILE_COUNT  5
 
 /* ==== 常量 ==== */
 #define TMC5160_ENC_TOLERANCE    256
