@@ -73,8 +73,34 @@ CubeMX 版本: 6.17.0, FW_H7 V1.13.0
 数据宽度: 8-bit
 
 # FDCAN2 配置
-波特率: 500 kbit/s (Prescaler=1, Seg1=13, Seg2=2, 20TQ)
+波特率: 500 kbit/s (Prescaler=1, Seg1=13, Seg2=2, 16TQ @8MHz HSE)
 自动重发: ENABLE
+MessageRAM 分配 (移植适配, CubeMX 重生成需保留): ExtFiltersNbr=1 / RxFifo0ElmtsNbr=8 / TxFifoQueueElmtsNbr=3
+
+# CAN 命令协议 (自 TMC5160_StepMotor 移植提取) — 来源: 源工程 can_drv/can_usr 实现
+## 帧格式（经典帧, 扩展 ID, 8 字节）
+- 校验和: byte7 = (byte0..byte6 累加) & 0xFF
+
+## 命令帧 0x1AA55F42 (上位机 → MCU)
+| 字节 | 含义 |
+| :--- | :--- |
+| byte0-3 | value: int32 小端（位置/偏移/速度） |
+| byte4 | cmd: 0x01绝对定位 / 0x02相对顺时针 / 0x03相对逆时针 / 0x04速度模式 / 0x05停止 / 0x06 PID调参(未实现) / 0x07闭环使能 / 0x08闭环禁用 |
+| byte5 | motor: 0x01=U1 / 0x02=U2 / 0x06=全部 |
+| byte6 | param: 运动参数组 ID 1~5（cmd 0x06 时为 PID 参数类型） |
+| byte7 | checksum |
+
+## 反馈帧 0x1AA55F43 (MCU → 上位机)
+| 字节 | 含义 |
+| :--- | :--- |
+| byte0-3 | pos: 编码器位姿 X_ENC int32 小端 |
+| byte4 | status: bit0到位 bit1失步 bit2过温 bit3驱动错 bit4 SPI异常 |
+| byte5 | motor |
+| byte6 | protect: bit0=OTPW bit1=OT bit2=drv_err bit3=S2GA bit4=S2GB bit5=S2VSA bit6=S2VSB bit7=失步 |
+| byte7 | checksum |
+
+## 调试通道
+- 调试遥测已迁移 J-Link RTT（1Hz 心跳，rtt_dbg 封装），不再占用 CAN 总线
 
 # TIM4 配置
 CH3: PWM Generation (TMC_CLK — 为 TMC5160 提供外部时钟)
@@ -133,3 +159,5 @@ PWM频率: 15Mhz
 | L 相电感        | (TBC) | mH        | | | [ ] |
 
 # 任务队列 (Task Queue) — AI 自动维护（允许为空）
+
+- [ ] [c] 移植 F407 工程代码到 H7（11 模块归一 + SEGGER_RTT + Core 织入 + FDCAN 重写）（起 2026-08-25 | 止 2026-08-25 | 验收 待用户功能测试）

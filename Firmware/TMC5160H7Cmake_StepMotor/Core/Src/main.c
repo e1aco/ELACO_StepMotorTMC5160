@@ -26,7 +26,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "usr/queue.h"
+#include "drv/can_drv.h"
+#include "usr/can_usr.h"
+#include "usr/tmc5160_usr.h"
+#include "usr/motor_ctrl.h"
+#include "usr/closed_loop.h"
+#include "drv/rtt_dbg.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,7 +53,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+/* 闭环节拍标志：预留（目标板无 TIM7，闭环 Tick 暂未启用，与源工程行为等价） */
+volatile uint8_t g_cl_tick_flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -103,13 +110,52 @@ int main(void)
   MX_TIM4_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+  /* TMC5160 外部时钟: TIM4_CH3 PWM 输出 15MHz (TIM4CLK=240MHz/(PSC=0)/(ARR=15+1))
+   * 必须在 USR_TMC5160_Init 前启动，否则芯片无 fCLK 不工作 */
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
 
+  QUEUE_Init(&g_queue_st);
+  DRV_CAN_Init();
+  USR_CAN_Init();
+  USR_TMC5160_Init();
+  USR_MOTOR_Init();
+  USR_CLOSEDLOOP_Init();
+  RTT_DBG_Init();
+  RTT_DBG_Str("RTT ready\r\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    USR_CAN_Process();
+
+    /* RTT 心跳遥测：1Hz 打印双电机实际/编码器位置 */
+    {
+      static uint32_t s_rtt_last_tick = 0;
+      uint32_t now = HAL_GetTick();
+      if ((now - s_rtt_last_tick) >= 1000)
+      {
+        s_rtt_last_tick = now;
+        RTT_DBG_Printf("[t=%u] U1 act=%d enc=%d | U2 act=%d enc=%d\r\n",
+                       (unsigned)now,
+                       (int)USR_MOTOR_GetPosition(MOTOR_CTRL_U1),
+                       (int)USR_MOTOR_GetEncoderPosition(MOTOR_CTRL_U1),
+                       (int)USR_MOTOR_GetPosition(MOTOR_CTRL_U2),
+                       (int)USR_MOTOR_GetEncoderPosition(MOTOR_CTRL_U2));
+      }
+    }
+
+    /* 闭环控制：目标板无 TIM7 节拍定时器，保持注释态（与源工程行为等价） */
+    // if (g_cl_tick_flag)
+    // {
+    //   g_cl_tick_flag = 0;
+    //   USR_CLOSEDLOOP_Tick(MOTOR_CTRL_U1);
+    //   USR_CLOSEDLOOP_Tick(MOTOR_CTRL_U2);
+    // }
+
+    /* 配置持久化（stub：H750 无可用持久化介质，仅清标志） */
+    USR_TMC5160_SaveConfig();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

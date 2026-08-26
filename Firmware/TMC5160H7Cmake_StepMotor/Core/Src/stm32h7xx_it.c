@@ -22,6 +22,8 @@
 #include "stm32h7xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "drv/can_drv.h"
+#include "usr/queue.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,7 +59,9 @@
 /* External variables --------------------------------------------------------*/
 
 /* USER CODE BEGIN EV */
-
+extern FDCAN_HandleTypeDef hfdcan2;
+/* 闭环节拍标志：预留（目标板无 TIM7，见 main.c） */
+extern volatile uint8_t g_cl_tick_flag;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -199,5 +203,60 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /* USER CODE BEGIN 1 */
+
+/**
+  * @brief This function handles FDCAN2 interrupt line 0 (RX FIFO0).
+  */
+void FDCAN2_IT0_IRQHandler(void)
+{
+  HAL_FDCAN_IRQHandler(&hfdcan2);
+}
+
+/**
+  * @brief This function handles FDCAN2 interrupt line 1.
+  */
+void FDCAN2_IT1_IRQHandler(void)
+{
+  HAL_FDCAN_IRQHandler(&hfdcan2);
+}
+
+/**
+  * @brief CAN RX FIFO0 中断回调：ID 校验 + 前7字节累加和校验 + 入队
+  * @note  ISR 中禁止 SPI/Delay 等阻塞操作，仅入队，解析在主循环
+  */
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
+{
+  FDCAN_RxHeaderTypeDef rx_header;
+  uint8_t rx_data[8];
+  uint8_t sum = 0;
+  uint8_t i;
+
+  if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) == 0U)
+  {
+    return;
+  }
+
+  if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &rx_header, rx_data) != HAL_OK)
+  {
+    return;
+  }
+
+  if (CAN_RX_ID != rx_header.Identifier)
+  {
+    return;
+  }
+
+  /* 校验: 前7字节累加取低8位 */
+  for (i = 0; i < 7; i++)
+  {
+    sum += rx_data[i];
+  }
+  if (sum != rx_data[7])
+  {
+    return;
+  }
+
+  QUEUE_Insert(&g_queue_st, rx_data);
+}
 
 /* USER CODE END 1 */

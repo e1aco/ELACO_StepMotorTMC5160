@@ -45,11 +45,25 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
+    module/drv/can_drv.c
+    module/drv/rtt_dbg.c
+    module/drv/tmc5160_drv.c
+    module/usr/can_usr.c
+    module/usr/closed_loop.c
+    module/usr/motor_ctrl.c
+    module/usr/pid.c
+    module/usr/queue.c
+    module/usr/tmc5160_usr.c
+    SEGGER_RTT/RTT/SEGGER_RTT.c
+    SEGGER_RTT/RTT/SEGGER_RTT_printf.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    module
+    SEGGER_RTT/RTT
+    SEGGER_RTT/Config
 )
 
 # Add project symbols (macros)
