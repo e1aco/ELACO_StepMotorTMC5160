@@ -22,8 +22,9 @@
 #include "stm32h7xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "drv/can_drv.h"
-#include "usr/queue.h"
+#include "drv/can.h"
+#include "algo/queue.h"
+#include "app/comm_test.h"   /* COMM_Test_OnCanRxISR (USER CODE 区, 重生成不丢) */
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -257,6 +258,8 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
   }
 
   QUEUE_Insert(&g_queue_st, rx_data);
+  COMM_Test_OnCanRxISR();
 }
 
 /* USER CODE END 1 */
+

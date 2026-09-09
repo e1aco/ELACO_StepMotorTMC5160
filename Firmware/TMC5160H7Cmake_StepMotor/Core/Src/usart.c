@@ -21,7 +21,15 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
+#include <stdio.h>
 
+/* printf 重定向 → USART1（syscalls.c _write 依赖; [TM] 回传通道） */
+int __io_putchar(int ch)
+{
+    uint8_t c = (uint8_t)ch;
+    HAL_UART_Transmit(&huart1, &c, 1, HAL_MAX_DELAY);
+    return ch;
+}
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;

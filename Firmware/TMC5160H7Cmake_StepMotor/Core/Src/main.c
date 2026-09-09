@@ -26,13 +26,15 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "usr/queue.h"
-#include "drv/can_drv.h"
-#include "usr/can_usr.h"
-#include "usr/tmc5160_usr.h"
-#include "usr/motor_ctrl.h"
-#include "usr/closed_loop.h"
+#include "algo/queue.h"
+#include "drv/can.h"
+#include "drv/uart_dbg.h"
 #include "drv/rtt_dbg.h"
+#include "drv/tmc5160.h"
+#include "app/motor_ctrl.h"
+#include "app/closed_loop.h"
+#include "app/comm_test.h"
+#include "tim_test.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -120,23 +122,52 @@ int main(void)
   USR_TMC5160_Init();
   USR_MOTOR_Init();
   USR_CLOSEDLOOP_Init();
+  UART_DBG_Init();
   RTT_DBG_Init();
+  UART_DBG_Str("UART ready 115200\r\n");
   RTT_DBG_Str("RTT ready\r\n");
+  UART_DBG_Str("[BOOT] TMC5160H7 StepMotor\r\n");
+  RTT_DBG_Str("[BOOT] TMC5160H7 StepMotor\r\n");
+#ifdef CL_TIMING_MEASURE
+  TEST_TIM_Init();
+  TEST_SPI_SaleaeTriggerInit();
+  UART_DBG_Str("[SALEAE] 3-wire SCK PC10 MOSI PC12 MISO PC11 TRIG PA4\r\n");
+#endif
+  /* 上电 SPI 自检：双芯 GSTAT/DRVSTATUS 回读，串口+RTT 双通道输出判据 */
+  COMM_Test_SPI();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+#ifdef CL_TIMING_MEASURE
+    /* 3-wire Saleae 连续触发: 每 10ms 一次 U2 GSTAT 读, PA4 窄脉冲作同步 */
+    {
+        static uint32_t s_saleae_last = 0;
+        if ((HAL_GetTick() - s_saleae_last) >= 10)
+        {
+            s_saleae_last = HAL_GetTick();
+            TEST_SPI_SaleaePulse();
+            (void)DRV_TMC5160_ReadReg(TMC5160_CHIP_2, 0x01); /* GSTAT */
+        }
+    }
+#endif
     USR_CAN_Process();
-
-    /* RTT 心跳遥测：1Hz 打印双电机实际/编码器位置 */
+    COMM_Test_CAN_Heartbeat();
+    /* 双通道心跳遥测：1Hz 打印双电机实际/编码器位置 (USART1 115200 + RTT) */
     {
       static uint32_t s_rtt_last_tick = 0;
       uint32_t now = HAL_GetTick();
       if ((now - s_rtt_last_tick) >= 1000)
       {
         s_rtt_last_tick = now;
+        UART_DBG_Printf("[t=%u] U1 act=%d enc=%d | U2 act=%d enc=%d\r\n",
+                        (unsigned)now,
+                        (int)USR_MOTOR_GetPosition(MOTOR_CTRL_U1),
+                        (int)USR_MOTOR_GetEncoderPosition(MOTOR_CTRL_U1),
+                        (int)USR_MOTOR_GetPosition(MOTOR_CTRL_U2),
+                        (int)USR_MOTOR_GetEncoderPosition(MOTOR_CTRL_U2));
         RTT_DBG_Printf("[t=%u] U1 act=%d enc=%d | U2 act=%d enc=%d\r\n",
                        (unsigned)now,
                        (int)USR_MOTOR_GetPosition(MOTOR_CTRL_U1),
@@ -304,3 +335,4 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+

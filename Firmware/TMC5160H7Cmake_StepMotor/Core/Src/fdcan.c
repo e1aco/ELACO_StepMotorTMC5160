@@ -52,9 +52,9 @@ void MX_FDCAN2_Init(void)
   hfdcan2.Init.DataTimeSeg1 = 1;
   hfdcan2.Init.DataTimeSeg2 = 1;
   hfdcan2.Init.MessageRAMOffset = 0;
-  /* USER CODE 注意: MessageRAM 分配为移植适配项（CubeMX 重生成时需保留）
-   * ExtFiltersNbr=1(命令帧过滤) / RxFifo0ElmtsNbr=8 / TxFifoQueueElmtsNbr=3
-   * 见 module/drv/can_drv.c 头注 */
+  /* USER CODE 注意: MessageRAM 分配为移植适配项（CubeMX 重生成需保留，
+   * ExtFiltersNbr=1(扩展帧过滤) / RxFifo0ElmtsNbr=8 / TxFifoQueueElmtsNbr=3
+   * 见 module/drv/can.c 头注 + require.md FDCAN2 配置） */
   hfdcan2.Init.StdFiltersNbr = 0;
   hfdcan2.Init.ExtFiltersNbr = 1;
   hfdcan2.Init.RxFifo0ElmtsNbr = 8;
@@ -114,7 +114,7 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* fdcanHandle)
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE BEGIN FDCAN2_MspInit 1 */
-  /* FDCAN2 RX FIFO0 中断 (IT0 线)，见 module/drv/can_drv.c */
+  /* FDCAN2 RX FIFO0 中断 (IT0 线)，见 module/drv/can.c */
   HAL_NVIC_SetPriority(FDCAN2_IT0_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(FDCAN2_IT0_IRQn);
   /* USER CODE END FDCAN2_MspInit 1 */

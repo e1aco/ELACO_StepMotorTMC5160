@@ -36,8 +36,26 @@ tmc5160_spi_max_sck = 7.5 MHz       依据: TMC5160 datasheet ch4: fSCK = fCLK/2
 ## TMC5160 SPI 配置
 tmc5160_spi_mode = 3                 依据: TMC5160 datasheet ch4 SPI MODE 3 (CPOL=HIGH, CPHA=2EDGE) 日期: 2026-08-24 来源: 推导
 tmc5160_spi_datasize = 8-bit         依据: TMC5160 40-bit datagram = 8-bit addr + 32-bit data 日期: 2026-08-24 来源: 推导
-stm32_spi_prescaler = 16             依据: SPI3CLK=64MHz / 16 = 4MHz (≤7.5MHz max) 日期: 2026-08-24 来源: 推导
-stm32_spi_baudrate = 4 Mbit/s        依据: 64MHz/16 日期: 2026-08-24 来源: 推导
+stm32_spi_prescaler = 16             依据: SPI3 kernel=PLL3Q 103.2MHz ÷16 = 6.45MHz (≤7.5MHz 上限) 日期: 2026-09-09 来源: 实测校准
+stm32_spi_baudrate = 6.45 Mbit/s     依据: PLL3Q 103.2MHz/16; CubeMX 2026-09-09 改配置后 [SPI OK] 复测通过, 写帧20us/读双报54us 实测 日期: 2026-09-09 来源: 实测校准
+stm32_spi_kernel_clk = 103.2 MHz     依据: PLL3: HSE8MHz/M5=1.6 ×N129=206.4 VCO ÷Q2 日期: 2026-09-09 来源: CubeMX+推导
+
+## TMC5160 通讯事实 (2026-09-09 SPI 验证轮沉淀)
+tmc5160_ihold_irun_readable = false   依据: IHOLD_IRUN(0x10) 只写寄存器, 回读恒0, 不可作回读判据; TPOWERDOWN(0x11) 同 W (.cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch05.p038.md) 日期: 2026-09-09 来源: datasheet+实测
+tmc5160_spi_status_byte = 0x38 静止正常  依据: 回复帧 byte[39:32]=SPI_STATUS(bit5 pos_reached|bit4 vel_reached|bit3 standstill|bit1 drv_err|bit0 reset), 非 sync 字节, 静止态=0x38 (ch04 §4.1.2) 日期: 2026-09-09 来源: datasheet+实测
+tmc5160_tCSH_us = 10                  依据: tCSH>2×tCLK+10ns=510ns@4MHz, drv WriteReg/ReadReg 帧后加 10us 间隔 (ch04 §4.3 表) 日期: 2026-09-09 来源: datasheet, drv 已实施
+u1_chip_populated = false             依据: comm_test 注释"芯片1未焊接", boot 自检仅测 U2 (PD3 CS) 日期: 2026-09-09 来源: 你(硬件)
+
+## 编码器配置
+encoder_ppr = 1000 PPR               依据: 实测 ENC_CONST=12.8 反推 200×256/12.8=4000cpr÷4=1000PPR 日期: 2026-09-01 来源: 你实测
+encoder_cpr = 4000 counts/rev        依据: 1000PPR ×4 正交解码 日期: 2026-09-01 来源: 推导
+encoder_resolution = 0.09°/count     依据: 360°/4000 日期: 2026-09-01 来源: 推导
+encoder_enc_const = 12.8             依据: TMC5160 ENC_CONST = FSC×USC/cpr = 200×256/4000 日期: 2026-09-01 来源: 推导
+encoder_encmodes = 0x00              依据: 源工程 tmc5160_usr.c ENCMODE 写入值 日期: 2026-09-01 来源: 源工程
+encoder_tol = 256 microsteps         依据: TMC5160_ENC_TOLERANCE 定义 日期: 2026-09-01 来源: 源工程
+motor_fullsteps_per_rev = 200        依据: 1.8° 步距角 日期: 2026-08-24 来源: 电机规格书
+motor_microsteps = 256               依据: CHOPCONF MRES 配置 日期: 2026-08-24 来源: 推导
+motor_counts_per_rev = 51200         依据: 200×256=51200 微步/圈（实测确认）日期: 2026-09-01 来源: 你实测
 
 ## TMC5160 栅极驱动
 tmc5160_drvstrength = 2              依据: AOD4126 Qgd=10nC, 中等驱动强度平衡开关速度与EMI 日期: 2026-08-24 来源: 推导
