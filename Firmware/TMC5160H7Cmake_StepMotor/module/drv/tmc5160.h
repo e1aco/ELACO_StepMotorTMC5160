@@ -93,6 +93,7 @@ void    USR_TMC5160_SetVelocity(TMC5160_CHIP_T *chip, int32_t velocity);
 void    USR_TMC5160_Stop(TMC5160_CHIP_T *chip);
 
 int32_t USR_TMC5160_GetPosition(TMC5160_CHIP_T *chip);
+int32_t USR_TMC5160_GetVelocity(TMC5160_CHIP_T *chip);
 uint32_t USR_TMC5160_GetRampStat(TMC5160_CHIP_T *chip);
 uint32_t USR_TMC5160_GetDrvStatus(TMC5160_CHIP_T *chip);
 uint32_t USR_TMC5160_GetGStat(TMC5160_CHIP_T *chip);

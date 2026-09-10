@@ -34,7 +34,9 @@ void RTT_DBG_Init(void)
  */
 void RTT_DBG_Str(const char *str)
 {
+#if RTT_DBG
     SEGGER_RTT_WriteString(RTT_DBG_CHANNEL, str);
+#endif
 }
 
 /**
@@ -43,10 +45,12 @@ void RTT_DBG_Str(const char *str)
  */
 void RTT_DBG_Printf(const char *fmt, ...)
 {
+#if RTT_DBG
     va_list ap;
     va_start(ap, fmt);
     SEGGER_RTT_vprintf(RTT_DBG_CHANNEL, fmt, &ap);
     va_end(ap);
+#endif
 }
 
 /**

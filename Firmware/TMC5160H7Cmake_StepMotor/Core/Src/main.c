@@ -123,7 +123,7 @@ int main(void)
   USR_MOTOR_Init();
   USR_CLOSEDLOOP_Init();
   UART_DBG_Init();
-  RTT_DBG_Init();
+  //RTT_DBG_Init(); // RTT初始化
   UART_DBG_Str("UART ready 115200\r\n");
   RTT_DBG_Str("RTT ready\r\n");
   UART_DBG_Str("[BOOT] TMC5160H7 StepMotor\r\n");
@@ -133,8 +133,16 @@ int main(void)
   TEST_SPI_SaleaeTriggerInit();
   UART_DBG_Str("[SALEAE] 3-wire SCK PC10 MOSI PC12 MISO PC11 TRIG PA4\r\n");
 #endif
+
+  /* == 测试函数 == */
   /* 上电 SPI 自检：双芯 GSTAT/DRVSTATUS 回读，串口+RTT 双通道输出判据 */
-  COMM_Test_SPI();
+  // COMM_Test_SPI();
+#if SPI_SOAK
+  /* SPI 位保真浸泡诊断（2026-09-10 电机排查轮，实现见 app/comm_test.c；
+   * 含 U2 速度模式运转 10s，结束自动停并恢复 ENC_CONST；生产版置 0） */
+  COMM_Test_SPI_Soak();
+#endif
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -162,12 +170,24 @@ int main(void)
       if ((now - s_rtt_last_tick) >= 1000)
       {
         s_rtt_last_tick = now;
-        UART_DBG_Printf("[t=%u] U1 act=%d enc=%d | U2 act=%d enc=%d\r\n",
-                        (unsigned)now,
-                        (int)USR_MOTOR_GetPosition(MOTOR_CTRL_U1),
-                        (int)USR_MOTOR_GetEncoderPosition(MOTOR_CTRL_U1),
-                        (int)USR_MOTOR_GetPosition(MOTOR_CTRL_U2),
-                        (int)USR_MOTOR_GetEncoderPosition(MOTOR_CTRL_U2));
+        /* U2 追加运动诊断量: v=VACTUAL(0x22) rs=RAMP_STAT cs=CS_ACTUAL[9:0]
+         * ds=DRV_STATUS(OL/OT/S2 位) gs=GSTAT —— 遥测先行定位抖动 (retrieval.md) */
+        {
+          TMC5160_CHIP_T *u2 = USR_MOTOR_GetChip(MOTOR_CTRL_U2);
+          uint32_t ds = USR_TMC5160_GetDrvStatus(u2);
+          UART_DBG_Printf("[t=%u] U1 act=%d enc=%d | U2 act=%d enc=%d "
+                          "v=%d rs=%lX cs=%lu ds=%08lX gs=%02X\r\n",
+                          (unsigned)now,
+                          (int)USR_MOTOR_GetPosition(MOTOR_CTRL_U1),
+                          (int)USR_MOTOR_GetEncoderPosition(MOTOR_CTRL_U1),
+                          (int)USR_MOTOR_GetPosition(MOTOR_CTRL_U2),
+                          (int)USR_MOTOR_GetEncoderPosition(MOTOR_CTRL_U2),
+                          (int)USR_TMC5160_GetVelocity(u2),
+                          (unsigned long)USR_TMC5160_GetRampStat(u2),
+                          (unsigned long)(ds & 0x3FFUL),
+                          (unsigned long)ds,
+                          (unsigned int)USR_TMC5160_GetGStat(u2));
+        }
         RTT_DBG_Printf("[t=%u] U1 act=%d enc=%d | U2 act=%d enc=%d\r\n",
                        (unsigned)now,
                        (int)USR_MOTOR_GetPosition(MOTOR_CTRL_U1),
@@ -226,7 +246,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLN = 120;
   RCC_OscInitStruct.PLL.PLLP = 2;
   RCC_OscInitStruct.PLL.PLLQ = 2;
-  RCC_OscInitStruct.PLL.PLLR = 2;
+  RCC_OscInitStruct.PLL.PLLR = 2; 
   RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_3;
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
   RCC_OscInitStruct.PLL.PLLFRACN = 0;

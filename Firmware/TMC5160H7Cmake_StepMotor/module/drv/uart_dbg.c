@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 
+
 /* ==== 接口实现 ==== */
 
 /**
@@ -32,6 +33,7 @@ void UART_DBG_Init(void)
  */
 void UART_DBG_Str(const char *str)
 {
+#if UART_DBG
     uint16_t len;
     if (NULL == str)
     {
@@ -43,6 +45,7 @@ void UART_DBG_Str(const char *str)
         return;
     }
     (void)HAL_UART_Transmit(&huart1, (uint8_t *)str, len, 100);
+#endif
 }
 
 /**
@@ -51,6 +54,7 @@ void UART_DBG_Str(const char *str)
  */
 void UART_DBG_Printf(const char *fmt, ...)
 {
+#if UART_DBG
     /* 大缓冲禁栈局部: static 128B (依据 .cl/memory/ STACK_SIZE) */
     static char s_buf[128];
     va_list ap;
@@ -72,4 +76,5 @@ void UART_DBG_Printf(const char *fmt, ...)
         n = (int)sizeof(s_buf);
     }
     (void)HAL_UART_Transmit(&huart1, (uint8_t *)s_buf, (uint16_t)n, 100);
+#endif
 }

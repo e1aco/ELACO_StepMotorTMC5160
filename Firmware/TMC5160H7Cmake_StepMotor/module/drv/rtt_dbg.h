@@ -5,12 +5,13 @@
  * @版本: v1.0
  * @说明: SEGGER RTT 调试输出封装（替代 CAN 调试帧）
  * @来源: 自 TMC5160_StepMotor(F407) 移植，零芯片依赖
- * @依赖: SEGGER_RTT 库（SEGGER_RTT/RTT 目录源文件）
+ * @依赖: SEGGER_RTT 库（SEGGER_RTT/RTT 目录源文件）+ cl_config.h RTT_DBG 通道开关
  ****************************************************************************/
 #ifndef RTT_DBG_H
 #define RTT_DBG_H
 
 #include <stdint.h>
+#include "cl_config.h"
 
 /* RTT 通道定义 */
 #define RTT_DBG_CHANNEL     0   /* Terminal 0（RTT Viewer 默认通道） */

@@ -20,8 +20,66 @@
 /* ==== CS 高电平间隔: t_CHH ≥ 20ns (datasheet ch04 Fig4.3), 取 10us 裕量 ==== */
 /* 依据 .cl/datasheet/TMC5160A_Datasheet_Rev1.14_ch04_4_spi_interface.md: SPI 时序 */
 /* 依据 .cl/memory/config.md: stm32_hclk=240MHz, DWT CYCCNT 1tick=4.17ns */
+
 #define TMC5160_SPI_TIMEOUT_MS   100U
 #define TMC5160_CS_HIGH_US       10U
+
+/* ==== TMC5160 寄存器地址（usr 层只读常量） ==== */
+/* 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch06.p032.md: 寄存器映射 */
+#define REG_GCONF          0x00
+#define REG_GSTAT          0x01
+#define REG_IHOLD_IRUN     0x10
+#define REG_TPOWERDOWN     0x11
+#define REG_TPWMTHRS       0x13
+#define REG_SHORT_CONF     0x09
+#define REG_TCOOLTHRS      0x14
+#define REG_COOLCONF       0x6D
+#define REG_RAMPMODE       0x20
+#define REG_XACTUAL        0x21
+#define REG_VACTUAL        0x22
+#define REG_VSTART         0x23
+#define REG_A1             0x24
+#define REG_V1             0x25
+#define REG_AMAX           0x26
+#define REG_VMAX           0x27
+#define REG_DMAX           0x28
+#define REG_D1             0x2A
+#define REG_VSTOP          0x2B
+#define REG_TZEROWAIT      0x2C
+#define REG_XTARGET        0x2D
+#define REG_RAMP_STAT      0x35
+#define REG_ENCMODE        0x38
+#define REG_X_ENC          0x39
+#define REG_ENC_CONST      0x3A
+#define REG_ENC_STATUS     0x3B
+#define REG_ENC_DEVIATION  0x3D
+#define REG_CHOPCONF       0x6C
+#define REG_DRV_CONF       0x0A
+#define REG_DRVSTATUS      0x6F
+#define REG_PWMCONF        0x70
+
+/* ==== 全局实例 ==== */
+TMC5160_CHIP_T g_tmc5160_chip1_st;
+TMC5160_CHIP_T g_tmc5160_chip2_st;
+
+/* 编码器零位偏移：上电时 X_ENC 的初始值，后续读数减去此值归零 */
+static int32_t s_enc_offset[2];
+static uint8_t s_chip_dirty;
+
+static const TMC5160_PROFILE_T s_profiles[TMC5160_PROFILE_COUNT] = {
+    {0, 10, 0, 0, 1000, 5000, 1000, 1000, 10},
+    {0, 10, 0, 0, 5000, 20000, 5000, 5000, 10},
+    {0, 10, 0, 0, 10000, 50000, 10000, 10000, 10},
+    {0, 10, 0, 0, 20000, 100000, 20000, 20000, 10},
+    /* 组5 超高速: VMAX=2863311=50rev/s @fCLK=15MHz, AMAX/DMAX=40000(加速4.09M µsteps/s²)
+     * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch12_12_ramp_generator.md:
+     *   VMAX[µsteps/t] t=2^24/fCLK → 50×51200×2^24/15e6=2863311(上限2^23-512=8388608 OK)
+     *   AMAX[µsteps/ta²] ta²=2^41/fCLK² → 40000→4.09M µsteps/s² */
+    {0, 10, 0, 0, 40000, 2863311, 40000, 40000, 10},
+};
+/*******************************************************************************************
+ *  内部函数部分
+********************************************************************************************/
 
 static void S_DelayUs(uint32_t us)
 {
@@ -45,7 +103,23 @@ static void S_DelayUs(uint32_t us)
     }
 }
 
-/* ==== 接口实现 ==== */
+/**
+ * @输入 reg_value: 读取到的寄存器值
+ * @输出 0=有效, 1=无效
+ * @说明 0xFFFFFFFF 视为 SPI 读失败哨兵值
+ */
+static uint8_t S_RegValid(uint32_t reg_value)
+{
+    if (0xFFFFFFFF == reg_value)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+/*******************************************************************************************
+ *  驱动函数部分
+********************************************************************************************/
 
 /**
  * @输入 chip: 芯片编号 TMC5160_CHIP_1/TMC5160_CHIP_2
@@ -249,68 +323,9 @@ uint8_t DRV_TMC5160_DebugTransfer(uint8_t chip, uint8_t *tx, uint8_t *rx, uint8_
     return (HAL_OK == status) ? 0 : 1;
 }
 
-/* ================================================================
- * 芯片功能封装（原 module/app/tmc5160_usr.c，文件合并，行为零改动）
- * ================================================================ */
-
-/* ==== TMC5160 寄存器地址（usr 层只读常量） ==== */
-/* 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch06.p032.md: 寄存器映射 */
-#define REG_GCONF          0x00
-#define REG_GSTAT          0x01
-#define REG_IHOLD_IRUN     0x10
-#define REG_TPOWERDOWN     0x11
-#define REG_TPWMTHRS       0x13
-#define REG_SHORT_CONF     0x09
-#define REG_TCOOLTHRS      0x14
-#define REG_COOLCONF       0x6D
-#define REG_RAMPMODE       0x20
-#define REG_XACTUAL        0x21
-#define REG_VSTART         0x23
-#define REG_A1             0x24
-#define REG_V1             0x25
-#define REG_AMAX           0x26
-#define REG_VMAX           0x27
-#define REG_DMAX           0x28
-#define REG_D1             0x2A
-#define REG_VSTOP          0x2B
-#define REG_TZEROWAIT      0x2C
-#define REG_XTARGET        0x2D
-#define REG_RAMP_STAT      0x35
-#define REG_ENCMODE        0x38
-#define REG_X_ENC          0x39
-#define REG_ENC_CONST      0x3A
-#define REG_ENC_STATUS     0x3B
-#define REG_ENC_DEVIATION  0x3D
-#define REG_CHOPCONF       0x6C
-#define REG_DRV_CONF       0x0A
-#define REG_DRVSTATUS      0x6F
-#define REG_PWMCONF        0x70
-
-/* ==== 内部工具 ==== */
-
-/**
- * @输入 reg_value: 读取到的寄存器值
- * @输出 0=有效, 1=无效
- * @说明 0xFFFFFFFF 视为 SPI 读失败哨兵值
- */
-static uint8_t S_RegValid(uint32_t reg_value)
-{
-    if (0xFFFFFFFF == reg_value)
-    {
-        return 1;
-    }
-    return 0;
-}
-
-/* ==== 全局实例 ==== */
-TMC5160_CHIP_T g_tmc5160_chip1_st;
-TMC5160_CHIP_T g_tmc5160_chip2_st;
-
-/* 编码器零位偏移：上电时 X_ENC 的初始值，后续读数减去此值归零 */
-static int32_t s_enc_offset[2];
-static uint8_t s_chip_dirty;
-
-/* ==== 配置持久化（stub） ==== */
+/*******************************************************************************************
+ *  用户函数部分
+********************************************************************************************/
 
 /**
  * @输入 无
@@ -333,8 +348,6 @@ void USR_TMC5160_SaveConfig(void)
 {
     s_chip_dirty = 0;
 }
-
-/* ==== 初始化 ==== */
 
 /**
  * @输入 无
@@ -381,16 +394,19 @@ void USR_TMC5160_Init(void)
             gstat = USR_TMC5160_ReadReg(chip, REG_GSTAT);
         }
 
-        /* 斩波模式: 全程 SpreadCycle（非静音）
+        /* 斩波模式: GCONF=0x00 → en_pwm_mode=0, 全程 SpreadCycle
          * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch06.p032.md: GCONF.en_pwm_mode
-         * GCONF=0x00: en_pwm_mode=0 → SpreadCycle 全程启用（高速段扭矩足）
-         * 背景: 源工程实测 StealthChop 高速扭矩不足丢步，全程 SpreadCycle 解决（噪声大） */
+         * 历史: 2026-09-09 静音对照测试(0x04)已毕——SOAK r4 证明静音直调同样 100%
+         *       丢步不转, 对照结论=非斩波模式独有问题; 2026-09-10 撤钩子回生产值,
+         *       恢复 S2/OL 检测有效性(OL 精度 SpreadCycle 最高, ch11 §11.3) */
         USR_TMC5160_WriteReg(chip, REG_GCONF, 0x00);
 
-        /* CHOPCONF: TOFF=5, TBL=%11(54clk 最长死区), MRES=%0000(256微步)
+        /* CHOPCONF: TOFF=5, TBL=%11(54clk 最长死区), MRES=%0000(256微步) → 0x000181C5
          * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch06.p051.md / ch06.p052.md: CHOPCONF
          * 说明: MRES=0=256微步配合内部运动控制器; TBL=%11 为源工程实测调优值——加长比较器
-         *       死区抑制大电流加速段方向相关 S2GA 短路误触发。其余斩波参数由 PWMCONF 决定。 */
+         *       死区抑制大电流加速段方向相关 S2GA 短路误触发。其余斩波参数由 PWMCONF 决定。
+         * 历史: 2026-09-09 曾写 0xC00181C5(bit31 diss2vs+bit30 diss2g 关短路检测)做
+         *       误触发对照, 2026-09-10 撤钩子恢复生产值 → S2G/S2VS 检测重新生效 */
         USR_TMC5160_WriteReg(chip, REG_CHOPCONF, 0x000181C5);
 
         /* DRV_CONF: DRVSTRENGTH=00(weak), 降低栅极驱动电流
@@ -421,14 +437,21 @@ void USR_TMC5160_Init(void)
         /* 编码器配置 */
         USR_TMC5160_ConfigEncoder(chip);
 
-        /* 电机电流: IHOLD=8, IRUN=20, IHOLDDELAY=6
-         * 依据 ch08: IRMS=(CS+1)/32×VFS/RSENSE/√2
-         * 推导: RS=0.05Ω, VFS=0.325V → IRUN=20
-         *   → (20+1)/32×0.325/0.05/√2 ≈ 3.02A RMS
-         * IHOLD=8 → ≈1.20A RMS(保持力矩, 静止降热)
-         * 背景: 实测 IRUN=27(4A) 双机满流至 OTPW 后热致 S2 误触发
-         *   降流至 20(3A) 根除(150轮浸泡0次)
-         * 静止约 699ms(TPOWERDOWN=40, 40×2^18/15MHz)后降至 IHOLD */
+        /* 电机电流: bit 域 IHOLD[3:0] | IRUN[11:8] | IHOLDDELAY[19:16]
+         * (2026-09-10 修: 参考代码/本工程旧注释"IHOLD=8,DELAY=6"为位域写反误读,
+         *  实际代码值一直是 DELAY=8/IRUN=20/IHOLD=6)
+         * IRUN 推导: 采用 F407 参考代码实测验证值 CS=20:
+         *   IRMS = (20+1)/32 × IFS/√2 = 21/32 × (0.325/0.05)/1.414 = 3.02A RMS
+         *   历史: CS=27(≈4A 额定) 双机满流经 OTPW(120°C) → 热致 S2 误触发;
+         *         CS=20 后 150 轮浸泡 0 次 (源工程 tmc5160_usr.c 2026-08-14 定案)
+         *   (2026-09-10 曾推 CS=13→2.01A 降热方案, 按用户裁决回退参考值 20;
+         *    若发热仍大再切 13: 14/32×6.5/1.414=2.01A, 铜损 3.4W vs 现 7.7W)
+         * IHOLD 推导: 3(0.576A) 实测锁不住轴(用户 2026-09-10) → 回调 6:
+         *   (6+1)/32 × 6.5/1.414 = 1.01A RMS, 保持力矩 ≈ 1.3×1.01/4 ≈ 0.33N·m,
+         *   静止铜损 = 2×1.01²×0.42 = 0.85W
+         * 依据 .cl/memory/config.md tmc5160_ifs=6.5A / tmc5160_vfs=0.325V +
+         *      电机规格书 R=0.42Ω 额定4A 保持力矩1.3N·m +
+         *      ..\TMC5160_StepMotor tmc5160_usr.c:267 实测校准史 */
         USR_TMC5160_WriteReg(chip, REG_IHOLD_IRUN, (8 << 16) | (20 << 8) | 6);
 
         /* 静止降流延迟: 2^18 tCLK 单位, 40 → 40×262144/15e6 ≈ 699ms
@@ -440,6 +463,12 @@ void USR_TMC5160_Init(void)
 
         /* CoolStep 速度窗口: 0 = 关闭 */
         USR_TMC5160_WriteReg(chip, REG_TCOOLTHRS, 0);
+
+        /* TPWMTHRS=0: en_pwm_mode=0(GCONF=0x00) 下本寄存器不参与斩波切换, 写 0 保
+         * 源工程行为等价 (2026-09-10 撤静音对照后注释修正)
+         * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch05.p038.md:
+         *   0x10-0x1F 速度相关控制寄存器组 */
+        USR_TMC5160_WriteReg(chip, REG_TPWMTHRS, 0);
 
         /* 使能时序: 配置写完后延时稳定, 再拉低 DRV_ENN 使能, 随后延时等待校准
          * 避免上电瞬时过流(当前/斩波参数已就绪时才导通功率级) */
@@ -477,20 +506,6 @@ uint32_t USR_TMC5160_ReadReg(TMC5160_CHIP_T *chip, uint8_t reg_addr)
 {
     return DRV_TMC5160_ReadReg(chip->chip_number, reg_addr);
 }
-
-/* ==== 运动参数组 ==== */
-
-static const TMC5160_PROFILE_T s_profiles[TMC5160_PROFILE_COUNT] = {
-    {0, 10, 0, 0, 1000, 5000, 1000, 1000, 10},
-    {0, 10, 0, 0, 5000, 20000, 5000, 5000, 10},
-    {0, 10, 0, 0, 10000, 50000, 10000, 10000, 10},
-    {0, 10, 0, 0, 20000, 100000, 20000, 20000, 10},
-    /* 组5 超高速: VMAX=2863311=50rev/s @fCLK=15MHz, AMAX/DMAX=40000(加速4.09M µsteps/s²)
-     * 依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch12_12_ramp_generator.md:
-     *   VMAX[µsteps/t] t=2^24/fCLK → 50×51200×2^24/15e6=2863311(上限2^23-512=8388608 OK)
-     *   AMAX[µsteps/ta²] ta²=2^41/fCLK² → 40000→4.09M µsteps/s² */
-    {0, 10, 0, 0, 40000, 2863311, 40000, 40000, 10},
-};
 
 /**
  * @输入 chip: 芯片指针; profile_id: 运动参数组 ID(1~5)
@@ -589,6 +604,17 @@ void USR_TMC5160_Stop(TMC5160_CHIP_T *chip)
 int32_t USR_TMC5160_GetPosition(TMC5160_CHIP_T *chip)
 {
     return (int32_t)USR_TMC5160_ReadReg(chip, REG_XACTUAL);
+}
+
+/**
+ * @输入 chip: 芯片指针
+ * @输出 int32_t: VACTUAL 当前实际速度（有符号，负=反转）
+ * @依据 .cl/datasheet/pages/TMC5160A_Datasheet_Rev1.14.ch05.p038.md:
+ *   R 0x22 20 VACTUAL（斜坡发生器实时速度）
+ */
+int32_t USR_TMC5160_GetVelocity(TMC5160_CHIP_T *chip)
+{
+    return (int32_t)USR_TMC5160_ReadReg(chip, 0x22);
 }
 
 /**

@@ -27,7 +27,9 @@
 /* TX FIFO 深度，与 fdcan.c TxFifoQueueElmtsNbr 保持一致 */
 #define CAN_TX_FIFO_DEPTH  3
 
-/* ==== drv 层 ==== */
+/*******************************************************************************************
+ *  内部函数部分
+********************************************************************************************/
 
 /**
  * @输入 无
@@ -105,54 +107,6 @@ static void S_StartRx(void)
     }
 }
 
-/* ==== 接口实现 ==== */
-
-/**
- * @输入 无
- * @输出 无
- * @说明 CAN 驱动初始化：过滤器 + 启动中断接收
- */
-void DRV_CAN_Init(void)
-{
-    S_FilterConfig();
-    S_StartRx();
-}
-
-/**
- * @输入 id: 发送帧 ID(扩展帧); data: 8字节数据指针
- * @输出 0=成功, 1=发送失败
- * @说明 对外发送接口
- */
-uint8_t DRV_CAN_Send(uint32_t id, uint8_t *data)
-{
-    return S_SendMsg(id, data);
-}
-
-/**
- * @输入 id: 发送帧 ID(扩展帧); data: 8字节数据指针
- * @输出 0=成功, 1=发送失败
- * @说明 串行化发送：等全部 TX FIFO 深度空闲（上一帧已完整发出）再发下一帧。
- *        仅等 1 个空闲时，同一 ID 连续多帧会被 CAN 核跨槽乱序仲裁，
- *        监控端按行还原时会错位（源工程实测遥测串扰根因）
- */
-uint8_t DRV_CAN_SendWait(uint32_t id, uint8_t *data)
-{
-    uint32_t timeout = 100000;
-
-    while ((CAN_TX_FIFO_DEPTH != HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2)) &&
-           (0 != timeout))
-    {
-        timeout--;
-    }
-    return S_SendMsg(id, data);
-}
-
-/* ================================================================
- * CAN 协议解析/反馈组装（原 module/app/can_usr.c，行为零改动）
- * ================================================================ */
-
-/* ==== 内部工具 ==== */
-
 /**
  * @输入 data: 4字节小端数据
  * @输出 int32_t: 解析后的有符号值
@@ -198,9 +152,53 @@ static uint8_t S_CalcChecksum(uint8_t *data)
     return sum;
 }
 
-/* ==== 调试输出已迁移至 RTT（rtt_dbg 模块）==== */
+/*******************************************************************************************
+ *  驱动函数部分
+********************************************************************************************/
 
-/* ==== 接口实现 ==== */
+/**
+ * @输入 无
+ * @输出 无
+ * @说明 CAN 驱动初始化：过滤器 + 启动中断接收
+ */
+void DRV_CAN_Init(void)
+{
+    S_FilterConfig();
+    S_StartRx();
+}
+
+/**
+ * @输入 id: 发送帧 ID(扩展帧); data: 8字节数据指针
+ * @输出 0=成功, 1=发送失败
+ * @说明 对外发送接口
+ */
+uint8_t DRV_CAN_Send(uint32_t id, uint8_t *data)
+{
+    return S_SendMsg(id, data);
+}
+
+/**
+ * @输入 id: 发送帧 ID(扩展帧); data: 8字节数据指针
+ * @输出 0=成功, 1=发送失败
+ * @说明 串行化发送：等全部 TX FIFO 深度空闲（上一帧已完整发出）再发下一帧。
+ *        仅等 1 个空闲时，同一 ID 连续多帧会被 CAN 核跨槽乱序仲裁，
+ *        监控端按行还原时会错位（源工程实测遥测串扰根因）
+ */
+uint8_t DRV_CAN_SendWait(uint32_t id, uint8_t *data)
+{
+    uint32_t timeout = 100000;
+
+    while ((CAN_TX_FIFO_DEPTH != HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan2)) &&
+           (0 != timeout))
+    {
+        timeout--;
+    }
+    return S_SendMsg(id, data);
+}
+
+/*******************************************************************************************
+ *  用户函数部分
+********************************************************************************************/
 
 /**
  * @输入 无
@@ -378,4 +376,3 @@ uint8_t USR_CAN_SendPidFeedback(uint8_t motor, uint8_t pid_type, int32_t value)
 
     return DRV_CAN_Send(CAN_TX_ID, tx_data);
 }
-

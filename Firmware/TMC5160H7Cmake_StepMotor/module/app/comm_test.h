@@ -15,6 +15,7 @@
 #include <stdint.h>
 
 void COMM_Test_SPI(void);
+void COMM_Test_SPI_Soak(void);
 void COMM_Test_OnCanRxISR(void);
 void COMM_Test_CAN_Heartbeat(void);
 uint32_t COMM_Test_GetCanRxCount(void);
